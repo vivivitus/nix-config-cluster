@@ -9,9 +9,9 @@
 
   programs.ssh.enable = true;
   programs.ssh.matchBlocks = {
-    "github.com-nix-config-hass" = {
+    "github.com-nix-config-cluster" = {
       hostname = "github.com";
-      identityFile = "/home/vivian/.ssh/vivian@homeassistant";
+      identityFile = "/home/vivian/.ssh/vivian@test-node";
     };
   };
 }
