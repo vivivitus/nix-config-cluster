@@ -1,0 +1,7 @@
+keys:
+  - &primary age1gp70hxtg2tp4l0zr4rhdsaz64562c549nudentv37e0x3zyxkf2sutgc5m
+creation_rules:
+  - path_regex: secrets/secrets.yaml$
+    key_groups:
+      - age:
+        - *primary

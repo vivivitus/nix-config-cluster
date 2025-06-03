@@ -10,5 +10,7 @@
     git
     nano
     wget
+    age
+    sops
   ];
 }
