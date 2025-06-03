@@ -3,7 +3,7 @@
 {
   networking = {
     useDHCP = lib.mkDefault true;
-    hostName = "test-node";
+    hostName = "test-node1";
     domain = "lan";
     resolvconf.dnsExtensionMechanism = false;
   };

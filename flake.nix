@@ -21,7 +21,21 @@
     overlays = import ./overlays {inherit inputs;};
 
     nixosConfigurations = {
-      test-node = lib.nixosSystem {
+      test-node1 = lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs outputs; };
+        modules = [
+          ./host/test-node
+        ];
+      };
+      test-node2 = lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs outputs; };
+        modules = [
+          ./host/test-node
+        ];
+      };
+      test-node3 = lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs outputs; };
         modules = [
@@ -39,7 +53,17 @@
     };
 
     homeConfigurations = {
-      "vivian@test-node" = lib.homeManagerConfiguration {
+      "vivian@test-node1" = lib.homeManagerConfiguration {
+        modules = [ ./home/vivian/test-node.nix ];
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        extraSpecialArgs = { inherit inputs outputs; };
+      };
+      "vivian@test-node2" = lib.homeManagerConfiguration {
+        modules = [ ./home/vivian/test-node.nix ];
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        extraSpecialArgs = { inherit inputs outputs; };
+      };
+      "vivian@test-node3" = lib.homeManagerConfiguration {
         modules = [ ./home/vivian/test-node.nix ];
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
