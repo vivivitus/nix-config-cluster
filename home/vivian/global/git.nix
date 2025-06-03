@@ -11,7 +11,7 @@
   programs.ssh.matchBlocks = {
     "github.com-nix-config-cluster" = {
       hostname = "github.com";
-      identityFile = "/home/vivian/.ssh/vivian@test-node";
+      identityFile = "/home/vivian/.ssh/vivian@cluster-node";
     };
   };
 }
