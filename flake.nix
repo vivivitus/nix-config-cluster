@@ -65,7 +65,6 @@
       "vivian@test-node1" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/test-node1.nix
-          sops-nix.homeManagerModules.sops
         ];
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
@@ -73,7 +72,6 @@
       "vivian@test-node2" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/test-node1.nix
-          sops-nix.homeManagerModules.sops
         ];
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
@@ -81,7 +79,6 @@
       "vivian@test-node3" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/test-node1.nix
-          sops-nix.homeManagerModules.sops
         ];
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
@@ -89,7 +86,6 @@
       "vivian@n1" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/test-node1.nix
-          sops-nix.homeManagerModules.sops
         ];
         pkgs = nixpkgs.legacyPackages.aarch64-linux;
         extraSpecialArgs = { inherit inputs outputs; };

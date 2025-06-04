@@ -2,8 +2,12 @@
 let ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
 in
 {
+  sops.secrets.password-vivian.neededForUsers = true;
+  users.mutableUsers = false;
+
   users.users.vivian = {
     isNormalUser = true;
+    hashedPasswordFile = config.sops.secrets.password-vivian.path;
     extraGroups = [
       "wheel"
     ] ++ ifTheyExist [ ];

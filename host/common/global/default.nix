@@ -1,6 +1,9 @@
-{ inputs, outputs, ... }: {
+{ inputs, outputs, ... }:
+
+{
   imports = [
     inputs.home-manager.nixosModules.home-manager
+    ./k3s.nix
   ] ++ (builtins.attrValues outputs.nixosModules);
 
   home-manager.extraSpecialArgs = { inherit inputs outputs; };
@@ -18,4 +21,9 @@
 
   programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
+
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+  sops.age.generateKey = true;
+  sops.defaultSopsFile = ../../../secrets/secrets.yaml;
 }
