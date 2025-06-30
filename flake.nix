@@ -55,7 +55,6 @@
         specialArgs = { inherit inputs outputs; };
         modules = [
           ./host/n1
-          nixos-hardware.nixosModules.rockchip
           sops-nix.nixosModules.sops
         ];
       };
@@ -85,7 +84,7 @@
       };
       "vivian@n1" = lib.homeManagerConfiguration {
         modules = [
-          ./home/vivian/test-node1.nix
+          ./home/vivian/n1.nix
         ];
         pkgs = nixpkgs.legacyPackages.aarch64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
