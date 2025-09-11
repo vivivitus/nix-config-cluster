@@ -1,30 +1,54 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{ pkgs, modulesPath, ... }:
 
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.loader.grub.enable = false;
-  boot.loader.generic-extlinux-compatible.enable = true;
-
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.initrd.availableKernelModules = [ "nvme" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
-
-  fileSystems."/" =
-    { device = "/dev/disk/by-label/root";
-      fsType = "ext4";
+  boot = {
+    loader = {
+        systemd-boot.enable = true;
+        systemd-boot.configurationLimit = 5;
+        efi.canTouchEfiVariables = true;
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-label/boot";
-      fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
-    };
+    tmp.useTmpfs = true;
+    tmp.tmpfsSize = "25%";
 
-  nix.settings = {
-    experimental-features = lib.mkDefault "nix-command flakes";
-    trusted-users = [ "root" "@wheel" ];
+    kernelPackages = pkgs.linuxPackages_latest;
+    initrd.availableKernelModules = [ "nvme" ];
+    initrd.kernelModules = [ ];
+    kernelModules = [ ];
+    extraModulePackages = [ ];
+  };
+
+  hardware = {
+    deviceTree = {
+        enable = true;
+        name = "rockchip/rk3588-friendlyelec-cm3588-nas.dtb";
+    };
+  };
+
+  services.btrfs.autoScrub = {
+    enable = true;
+    interval = "daily";
+    fileSystems = [ "/" ];
+  };
+
+  services.fstrim.enable = true;
+
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/root";
+    fsType = "btrfs";
+    options = [
+      "compress=zstd"
+      "noatime"
+      "nodiratime"
+      "commit=120"
+    ];
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/BOOT";
+    fsType = "vfat";
+    options = [ "fmask=0077" "dmask=0077" ];
   };
 }

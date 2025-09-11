@@ -1,9 +1,10 @@
-{ lib, pkgs, config, outputs, ... }:
+{ lib, pkgs, config, ... }:
 
 {
   imports = [
     ./cli.nix
     ./git.nix
+    ./vscode.nix
   ];
 
   nixpkgs = {
