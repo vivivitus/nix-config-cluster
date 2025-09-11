@@ -1,4 +1,4 @@
-{ inputs, outputs, ... }:
+{ lib, inputs, outputs, ... }:
 
 {
   imports = [
@@ -17,13 +17,29 @@
     config = {
       permittedInsecurePackages = [  ];
       allowBroken = true;
+      allowUnfree = true;
     };
+  };
+
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
+
+  nix.extraOptions = ''
+    min-free = ${toString (500 * 1024 * 1024)}
+  '';
+
+  nix.settings = {
+    auto-optimise-store = true;
+    experimental-features = lib.mkDefault "nix-command flakes";
+    trusted-users = [ "root" "@wheel" ];
   };
 
   programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
-
-  networking.firewall.enable = false;
+  hardware.enableAllFirmware = true;
 
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";

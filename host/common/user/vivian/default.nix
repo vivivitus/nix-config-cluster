@@ -7,7 +7,7 @@ in
 
   users.users.vivian = {
     isNormalUser = true;
-    hashedPassword = "$y$j9T$uy2L6pfLhnQgZWzq0mUlX.$afmDv7tD.Xtvxhl9puHmDtXXRaf2q0/mbgmRUl6mak4";
+    hashedPasswordFile = config.sops.secrets.password-vivian.path;
     extraGroups = [
       "wheel"
     ] ++ ifTheyExist [ ];
