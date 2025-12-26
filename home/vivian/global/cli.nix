@@ -12,5 +12,6 @@
     wget
     age
     sops
+    lm_sensors
   ];
 }

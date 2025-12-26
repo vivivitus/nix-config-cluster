@@ -2,10 +2,13 @@
 
 {
   networking.firewall = {
+    enable = false;
     allowedTCPPorts = [
       6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
       2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
       2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
+      80
+      443
     ];
     allowedUDPPorts = [
       8472 # k3s, flannel: required if using multi-node for inter-node networking
@@ -21,19 +24,25 @@
     enable = true;
     role = "server";
     token = config.sops.secrets.cluster-token.path;
+    extraFlags = [
+      "--disable traefik"
+      "--disable wordpress"
+    ];
   };
 
   services.k3s = {
-    autoDeployCharts.hello-world = {
-      name = "hello-world";
-      repo = "https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd";
-      version = "0.1.0";
-      hash = "sha256-U2XjNEWE82/Q3KbBvZLckXbtjsXugUbK6KdqT5kCccM=";
-      # configure the chart values like you would do in values.yaml
+    autoDeployCharts.wordpress = {
+      enable = false;
+      name = "wordpress";
+      repo = "https://charts.bitnami.com/bitnami";
+      #version = "26.0.0";
+      version = "25.0.26";
+      #hash = "sha256-JAzf+G/PMuBA5NEtVSVFpD1z3g2KyLBNVqsY0kpUvKQ=";
+      hash = "sha256-lvgLKL146zFePe3soJE297VB0Y6Hr2YHyoM36n9tDyE=";
+      targetNamespace = "wordpress";
+      createNamespace = true;
       values = {
         replicaCount = 1;
-        serviceAccount.create = false;
-        servcie.port = 8080;
       };
     };
   };
