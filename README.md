@@ -37,3 +37,9 @@ Prepare for installation
   - ``` mount -o compress=zstd,subvol=home /dev/mmcblk0p3 /mnt/home ```
   - ``` mount -o compress=zstd,noatime,subvol=nix /dev/mmcblk0p3 /mnt/nix ```
   - ``` mount /dev/mmcblk0p2 /mnt/boot ```
+
+Installation
+-
+- Apply configuration from git
+  - ``` sudo nixos-install --flake github:vivivitus/nix-config-cluster#<machine> ```
+
