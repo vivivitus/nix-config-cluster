@@ -58,6 +58,14 @@
           sops-nix.nixosModules.sops
         ];
       };
+      n2 = lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = { inherit inputs outputs; };
+        modules = [
+          ./host/n2
+          sops-nix.nixosModules.sops
+        ];
+      };
     };
 
     homeConfigurations = {
@@ -85,6 +93,13 @@
       "vivian@n1" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/n1.nix
+        ];
+        pkgs = nixpkgs.legacyPackages.aarch64-linux;
+        extraSpecialArgs = { inherit inputs outputs; };
+      };
+      "vivian@n2" = lib.homeManagerConfiguration {
+        modules = [
+          ./home/vivian/n2.nix
         ];
         pkgs = nixpkgs.legacyPackages.aarch64-linux;
         extraSpecialArgs = { inherit inputs outputs; };
