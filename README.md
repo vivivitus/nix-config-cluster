@@ -1,12 +1,39 @@
-### Preparation
-
-(Temporary until a better solution is found)
-
-Installation of the [edk2-uefi firmware](https://github.com/edk2-porting/edk2-rk3588):
-
+Installation of the [edk2-uefi firmware](https://github.com/edk2-porting/edk2-rk3588)
+-
 - Enter Maskrom mode by pressing **RST** shortly while **MASK** is pressed.
-- Upload MiniLoader ``` rkdeveloptool db Downloads/MiniLoaderAll.bin ```
-- Select EMMC ``` rkdeveloptool cs 1 ```
-- Flash edk2 image ``` rkdeveloptool wl 0 /home/vivian/Downloads/nanopc-cm3588-nas_UEFI_Debug_824e6c1.img ```
+- Upload MiniLoader
+  - ``` rkdeveloptool db MiniLoaderAll.bin ```
+- Select EMMC
+  - ``` rkdeveloptool cs 1 ```
+- Flash edk2 image
+  - ``` rkdeveloptool wl 0 <image> ```
 
-Boot [nixos ARM image](https://nixos.org/download/) from USB
+Prepare for installation
+-
+- Boot [nixos ARM image](https://nixos.org/download/) from USB
+- Change keyboard layout
+  -  ``` loadkeys sg ```
+- Set nixos user password
+  -  ``` passwd ```
+  -  ``` sudo su ```
+- Create partitions
+  - ``` fdisk /dev/mmcblk0 ```
+  - ``` n ```, default, default, ``` +500M ```
+  - ``` t ```, ``` 1 ```
+  - ``` n ```, default, default, default
+  - ``` w ```
+- Format disks
+  -  ``` mkfs.fat -F 32 -n BOOT /dev/mmcblk0p2 ```
+  -  ``` mkfs.btrfs -L root /dev/mmcblk0p3 ```
+- Create and mount subvolumes
+  - ``` mkdir -p /mnt ```
+  - ``` mount /dev/mmcblk0p3 /mnt ```
+  - ``` btrfs subvolume create /mnt/root ```
+  - ``` btrfs subvolume create /mnt/home ```
+  - ``` btrfs subvolume create /mnt/nix ```
+  - ``` umount /mnt ```
+  - ``` mount -o compress=zstd,subvol=root /dev/mmcblk0p3 /mnt ```
+  - ``` mkdir /mnt/{boot,home,nix} ```
+  - ``` mount -o compress=zstd,subvol=home /dev/mmcblk0p3 /mnt/home ```
+  - ``` mount -o compress=zstd,noatime,subvol=nix /dev/mmcblk0p3 /mnt/nix ```
+  - ``` mount /dev/mmcblk0p2 /mnt/boot ```
