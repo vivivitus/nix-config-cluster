@@ -35,20 +35,43 @@
 
   services.fstrim.enable = true;
 
-  fileSystems."/" = {
-    device = "/dev/disk/by-label/root";
-    fsType = "btrfs";
-    options = [
-      "compress=zstd"
-      "noatime"
-      "nodiratime"
-      "commit=120"
-    ];
-  };
+  fileSystems."/" =
+    { device = "/dev/disk/by-label/root";
+      fsType = "btrfs";
+      options = [
+        "subvol=root"
+        "compress=zstd"
+        "commit=120"
+        ];
+    };
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/BOOT";
-    fsType = "vfat";
-    options = [ "fmask=0077" "dmask=0077" ];
-  };
+  fileSystems."/home" =
+    { device = "/dev/disk/by-label/root";
+      fsType = "btrfs";
+      options = [
+        "subvol=home"
+        "compress=zstd"
+        "commit=120"
+        ];
+    };
+
+  fileSystems."/nix" =
+    { device = "/dev/disk/by-label/root";
+      fsType = "btrfs";
+      options = [
+        "subvol=nix"
+        "compress=zstd"
+        "commit=120"
+        "noatime"
+        "nodiratime"
+        ];
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/BOOT";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" ];
+    };
+
+  swapDevices = [ ];
 }
