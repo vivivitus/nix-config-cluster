@@ -1,4 +1,4 @@
-Installation of the [edk2-uefi firmware](https://github.com/edk2-porting/edk2-rk3588)
+Install [edk2-uefi firmware](https://github.com/edk2-porting/edk2-rk3588)
 -
 - Enter Maskrom mode by pressing **RST** shortly while **MASK** is pressed.
 - Upload MiniLoader
@@ -43,3 +43,13 @@ Installation
 - Apply configuration from git
   - ``` sudo nixos-install --flake github:vivivitus/nix-config-cluster#<machine> ```
 
+After reboot (workaround)
+-
+- SSH to machine
+- create or copy user age key for sops
+  - ``` scp ... ```
+  - ``` age-keygen -o ~/.config/sops/age/keys.txt ```
+  - ``` age-keygen -y ~/.config/sops/age/keys.txt ```
+- clone repo and add user key to sops.yaml ``` git clone https://github.com/vivivitus/nix-config-cluster.git ```
+- add machine key to sops.yaml ``` nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age' ```
+- update secrets ``` sops updatekeys secrets/secrets.yaml ```
