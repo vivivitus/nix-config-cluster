@@ -1,6 +1,7 @@
-{ ... }: {
+{lib, ...}:
 
-  imports = [
-    ./networking.nix
-  ];
+{
+  networking = {
+    hostName = "n2";
+  };
 }
