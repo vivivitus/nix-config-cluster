@@ -4,6 +4,7 @@
     ./hardware-configuration.nix
     ./networking
     ../common/global
+    ../common/networking
     ../common/user/vivian
   ];
 
