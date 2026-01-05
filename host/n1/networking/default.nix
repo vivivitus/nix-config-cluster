@@ -2,6 +2,6 @@
 
 {
   networking = {
-    hostName = "n2";
+    hostName = "n1";
   };
 }
