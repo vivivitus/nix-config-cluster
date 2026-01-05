@@ -3,11 +3,17 @@
 {
   programs.git = {
     enable = true;
-    userName  = "vivivitus";
-    userEmail = "vivi_vitus@hotmail.com";
+    settings = {
+      user  = {
+        name = "vivivitus";
+    	  email = "vivi_vitus@hotmail.com";
+      };
+      init.defaultBranch = "main";
+    };
   };
 
   programs.ssh.enable = true;
+  programs.ssh.enableDefaultConfig = false;
   programs.ssh.matchBlocks = {
     "github.com-nix-config-cluster" = {
       hostname = "github.com";
