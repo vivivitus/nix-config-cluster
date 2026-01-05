@@ -6,6 +6,6 @@
   ];
 
   services.k3s = {
-    serverAddr = "https://n1.lan:6443";
+    serverAddr = "https://n1:6443";
   };
 }
