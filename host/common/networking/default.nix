@@ -3,9 +3,8 @@
 {
   networking = {
     useDHCP = lib.mkDefault true;
-    hostName = "n3";
     domain = "lan";
-    resolvconf.dnsExtensionMechanism = false;
+    nameservers = [ "10.0.1.1" "2a02:168:5bab:1::1" ];
   };
 
   services.openssh = {
@@ -19,7 +18,5 @@
 
   services.resolved = {
     enable = true;
-    dnssec = "false";
-    extraConfig = "DNSOverTLS=no";
   };
 }
