@@ -8,6 +8,7 @@ keys:
     - &test-node age1hpptsyvz8n924hkpcunmkwyfd9xdecaj5y0whk3cs0t45u983qestfwjtc
     - &n1 age13nlg62hvtatk7rx3xhjr0ugnl9z0wcf9hugpudld5j7dq2cf05cslptwp7
     - &n2 age1v0shqfhhpa0c229899p85xwq952krlun5rgfuru0w0sfnhguw4zqwvcdtg
+    - &n3 age1xk0y5pk2yerlecgldv22sdv6ty98jgjcz20mzfyxsv940yq37sesautru6
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     # mit keygroups wird definiert, welche keys zugang zu den secrets haben
@@ -18,3 +19,4 @@ creation_rules:
         - *test-node
         - *n1
         - *n2
+        - *n3
