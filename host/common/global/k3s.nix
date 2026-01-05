@@ -24,26 +24,23 @@
     enable = true;
     role = "server";
     token = config.sops.secrets.cluster-token.path;
-    extraFlags = [
-      "--disable traefik"
-      "--disable wordpress"
-    ];
+    extraFlags = [ ];
   };
 
-  services.k3s = {
-    autoDeployCharts.wordpress = {
-      enable = false;
-      name = "wordpress";
-      repo = "https://charts.bitnami.com/bitnami";
-      #version = "26.0.0";
-      version = "25.0.26";
-      #hash = "sha256-JAzf+G/PMuBA5NEtVSVFpD1z3g2KyLBNVqsY0kpUvKQ=";
-      hash = "sha256-lvgLKL146zFePe3soJE297VB0Y6Hr2YHyoM36n9tDyE=";
-      targetNamespace = "wordpress";
-      createNamespace = true;
-      values = {
-        replicaCount = 1;
-      };
-    };
-  };
+  # services.k3s = {
+  #   autoDeployCharts.wordpress = {
+  #     enable = false;
+  #     name = "wordpress";
+  #     repo = "https://charts.bitnami.com/bitnami";
+  #     #version = "26.0.0";
+  #     version = "25.0.26";
+  #     #hash = "sha256-JAzf+G/PMuBA5NEtVSVFpD1z3g2KyLBNVqsY0kpUvKQ=";
+  #     hash = "sha256-lvgLKL146zFePe3soJE297VB0Y6Hr2YHyoM36n9tDyE=";
+  #     targetNamespace = "wordpress";
+  #     createNamespace = true;
+  #     values = {
+  #       replicaCount = 1;
+  #     };
+  #   };
+  # };
 }
