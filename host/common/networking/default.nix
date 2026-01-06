@@ -2,8 +2,9 @@
 
 {
   networking = {
-    useDHCP = lib.mkDefault true;
-    domain = "lan";
+    dhcpcd.wait = "both";
+    #useDHCP = lib.mkDefault true;
+    #domain = "lan";
     nameservers = [ "10.0.1.1" "2a02:168:5bab:1::1" ];
   };
 
