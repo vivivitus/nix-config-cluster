@@ -1,8 +1,13 @@
 { pkgs, ... }: {
 
-  programs.bash = {
-    enable = true;
-    initExtra = "cd $HOME/nix-config-cluster";
+  programs = {
+    bash = {
+      enable = true;
+      initExtra = "cd $HOME/nix-config-cluster";
+    };
+    k9s = {
+      enable = true;
+      };
   };
 
   home.packages = with pkgs; [

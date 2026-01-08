@@ -26,6 +26,13 @@
     options = "--delete-older-than 7d";
   };
 
+  services.irqbalance.enable = true;
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
+  };
+
   nix.extraOptions = ''
     min-free = ${toString (500 * 1024 * 1024)}
   '';

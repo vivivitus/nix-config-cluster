@@ -2,6 +2,7 @@
 
 {
   networking = {
+    # k3s fails without this probably because ipv4 is not ready wit "any"
     dhcpcd.wait = "both";
     #useDHCP = lib.mkDefault true;
     #domain = "lan";
