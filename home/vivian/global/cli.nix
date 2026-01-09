@@ -18,5 +18,6 @@
     age
     sops
     lm_sensors
+    vulnix
   ];
 }

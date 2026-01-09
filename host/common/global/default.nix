@@ -43,6 +43,18 @@
     trusted-users = [ "root" "@wheel" ];
   };
 
+  services.fail2ban = {
+    enable = true;
+    bantime-increment = {
+      enable = true;
+      maxtime = "24h";
+    };
+    ignoreIP = [
+      "10.0.1.1/24" "2a02:168:5bab:1::1/64"
+      "10.0.10.1/24" "2a02:168:5bab:10::1/64"
+    ];
+  };
+
   programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
