@@ -24,6 +24,6 @@
     enable = true;
     role = "server";
     token = config.sops.secrets.cluster-token.path;
-    extraFlags = [ ];
+    extraFlags = [ "--tls-san n1.lan" "--tls-san n2.lan" "--tls-san n3.lan" ];
   };
 }
