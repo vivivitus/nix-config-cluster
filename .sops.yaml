@@ -6,7 +6,7 @@ keys:
   hosts:
     # nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
     - &test-node age1hpptsyvz8n924hkpcunmkwyfd9xdecaj5y0whk3cs0t45u983qestfwjtc
-    - &n1 age1xm0c2t2az2tucxmaaa7lw3vmsxg6ntrcvy472h98y0egkee85pcsgx72x3
+    - &n1 age14t94vzwfllds7feaf4srx8un02uts2cqgakshv85ug5zgq307vmqtd9dp2
     - &n2 age1n5dzvy69rk0gmulndczfwjhjkaq329j3fd9fme3ehgwtvhc7zfnsmgqc48
     - &n3 age1xk0y5pk2yerlecgldv22sdv6ty98jgjcz20mzfyxsv940yq37sesautru6
 creation_rules:
