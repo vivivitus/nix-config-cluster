@@ -23,7 +23,12 @@
   services.k3s = {
     enable = true;
     role = "server";
-    token = config.sops.secrets.cluster-token.path;
-    extraFlags = [ "--tls-san n1.lan" "--tls-san n2.lan" "--tls-san n3.lan" ];
+    tokenFile = config.sops.secrets.cluster-token.path;
+    extraFlags = [ 
+      "--tls-san" "n1.lan" 
+      "--tls-san" "n2.lan" 
+      "--tls-san" "n3.lan"
+      "--write-kubeconfig-mode" "644" 
+    ];
   };
 }
