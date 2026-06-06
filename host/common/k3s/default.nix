@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
   networking.firewall = {
@@ -23,6 +23,7 @@
   services.k3s = {
     enable = true;
     role = "server";
+    package = pkgs.k3s_1_35;
     token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
       "--tls-san" "n1.lan" 

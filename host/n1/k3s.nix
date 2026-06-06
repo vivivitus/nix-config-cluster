@@ -10,7 +10,7 @@
   };
   
   services.k3s.manifests.argocd-ingress = {
-    content = builtins.readFile ./argocd-ingress.yaml;
+    source = ./argocd-ingress.yaml; 
   };
 
   services.k3s = {
