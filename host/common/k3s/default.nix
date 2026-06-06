@@ -23,7 +23,7 @@
   services.k3s = {
     enable = true;
     role = "server";
-    tokenFile = config.sops.secrets.cluster-token.path;
+    token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
       "--tls-san" "n1.lan" 
       "--tls-san" "n2.lan" 
