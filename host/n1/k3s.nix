@@ -7,13 +7,7 @@
 
   services.k3s = {
     clusterInit = true;
-  };
-  
-  services.k3s.manifests.argocd-ingress = {
-    source = ./argocd-ingress.yaml; 
-  };
 
-  services.k3s = {
     autoDeployCharts = {
       argo-cd = {
         name = "argo-cd";
@@ -21,6 +15,12 @@
         version = "9.2.4";
         hash = "sha256-af6AmXcaEiUygfsosoxB8hUso8UZsPQK/dCOgmBlCg0=";
       };
+    };
+
+    # Hier lesen wir die YAML-Datei einfach dynamisch ein
+    manifests.argocd-ingress = {
+      target = "argocd-ingress.yaml";
+      content = builtins.readFile ./argocd-ingress.yaml;
     };
   };
 }
