@@ -33,6 +33,16 @@
     memoryPercent = 50;
   };
 
+  services.journald.extraConfig = ''
+    Storage=volatile
+    MaxRetentionSec=1day
+  '';
+
+  boot = {
+    tmp.useTmpfs = true;
+    tmp.tmpfsSize = "25%";
+  };
+
   nix.extraOptions = ''
     min-free = ${toString (500 * 1024 * 1024)}
   '';
