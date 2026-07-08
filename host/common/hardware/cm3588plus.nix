@@ -10,9 +10,6 @@
         efi.canTouchEfiVariables = true;
     };
 
-    tmp.useTmpfs = true;
-    tmp.tmpfsSize = "25%";
-
     kernelPackages = pkgs.linuxPackages_latest;
     initrd.availableKernelModules = [ "nvme" ];
     initrd.kernelModules = [ ];

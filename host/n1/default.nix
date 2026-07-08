@@ -1,12 +1,11 @@
 { ... }: {
 
   imports = [
-    ./hardware-configuration.nix
     ./networking
     ../common/global
+    ../common/hardware/cm3588plus.nix
     ../common/networking
     ../common/user/vivian
-
     ./k3s.nix
   ];
 
