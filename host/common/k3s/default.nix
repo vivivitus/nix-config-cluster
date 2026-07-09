@@ -47,7 +47,6 @@
     manifests = {
       traefik-config = {
         target = "traefik-config.yaml";
-        # content erwartet ein valides Nix-Attributset:
         content = {
           apiVersion = "helm.cattle.io/v1";
           kind = "HelmChartConfig";
