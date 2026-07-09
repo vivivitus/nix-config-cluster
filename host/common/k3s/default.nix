@@ -33,7 +33,7 @@
   };
 
   services.k3s = {
-    enable = true;
+    enable = false;
     role = "server";
     package = pkgs.k3s_1_35;
     token = config.sops.secrets.cluster-token.path;
