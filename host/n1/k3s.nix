@@ -7,6 +7,6 @@
   ];
 
   services.k3s = {
-    clusterInit = true;
+    clusterInit = false;
   };
 }

@@ -38,11 +38,11 @@
     package = pkgs.k3s_1_35;
     token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
-      "--tls-san" "n1.lan" 
-      "--tls-san" "n2.lan" 
-      "--tls-san" "n3.lan"
+      "--tls-san" "10.0.2.50" 
+      "--tls-san" "10.0.2.51" 
+      "--tls-san" "10.0.2.52"
       "--write-kubeconfig-mode" "644"
-      "--cluster-reset"
+      # "--cluster-reset"
     ];
     manifests = {
       traefik-config = {
