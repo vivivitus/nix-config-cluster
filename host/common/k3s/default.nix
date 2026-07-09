@@ -33,15 +33,14 @@
   };
 
   services.k3s = {
-    enable = true;
+    enable = false;
     role = "server";
     package = pkgs.k3s_1_35;
     token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
-      "--tls-san" "10.0.2.50" 
-      "--tls-san" "10.0.2.51" 
-      "--tls-san" "10.0.2.52"
       "--write-kubeconfig-mode" "644"
+      "--cluster-cidr=10.42.0.0/16,fd42:ffee:9999::/48"
+      "--service-cidr=10.43.0.0/16,fd43:ffee:9999::/112"
       # "--cluster-reset"
     ];
     manifests = {
