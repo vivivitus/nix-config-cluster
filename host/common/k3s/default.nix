@@ -42,6 +42,7 @@
       "--tls-san" "n2.lan" 
       "--tls-san" "n3.lan"
       "--write-kubeconfig-mode" "644"
+      "--cluster-reset"
     ];
     manifests = {
       traefik-config = {
