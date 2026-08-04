@@ -12,6 +12,10 @@
     DefaultEnvironment="PATH=/run/current-system/sw/bin:LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib"
   '';
 
+  systemd.sockets.nix-daemon = {
+    socketConfig.ListenStream = "/run/nix/daemon-socket/socket";
+  };
+
   nixpkgs = {
     config = {
       permittedInsecurePackages = [  ];

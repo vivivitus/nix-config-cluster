@@ -40,12 +40,13 @@
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
     options = [
-      "subvol=root"
+      "subvol=persist"
       "compress=zstd"
       "commit=120"
       "noatime"
       "nodiratime"
     ];
+    neededForBoot = true;
   };
 
   fileSystems."/home" = {
@@ -77,6 +78,12 @@
     device = "/dev/disk/by-label/BOOT";
     fsType = "vfat";
     options = [ "fmask=0077" "dmask=0077" "noatime" ];
+  };
+
+  fileSystems."/var/lib/nixos" = {
+    device = "/persist/var/lib/nixos";
+    fsType = "none";
+    options = [ "bind" ];
   };
 
   swapDevices = [ ];
