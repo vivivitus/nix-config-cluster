@@ -4,7 +4,6 @@ metadata:
   name: argocd-server-ingress
   namespace: argocd
   annotations:
-    # Required because ArgoCD server uses HTTPS internally
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
@@ -19,4 +18,4 @@ spec:
           service:
             name: argocd-server
             port:
-              name: https
+              name: http # Geändert von https auf http

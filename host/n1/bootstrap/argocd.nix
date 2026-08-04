@@ -15,7 +15,6 @@
 
     path = with pkgs; [ kubectl coreutils gnugrep apacheHttpd ];
 
-    # 'script' gehört HIERHIN, direkt in den Service
     script = ''
       #!/usr/bin/env bash
       set -euo pipefail
@@ -38,8 +37,23 @@
         kubectl create namespace argocd
         
         # 1. Install ArgoCD via Server-Side Apply
+        echo "Applying official ArgoCD manifests..."
         kubectl apply --server-side=true -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
         
+        # Warten, bis der Controller das Secret generiert hat
+        echo "Waiting for argocd-secret to be created by the controller..."
+        until kubectl get secret argocd-secret -n argocd >/dev/null 2>&1; do
+          sleep 2
+        done
+
+        # 1.5 Insecure Modus konfigurieren & Server neu starten
+        echo "Configuring ArgoCD to run in insecure mode..."
+        kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data":{"server.insecure":"true"}}'
+
+        echo "Restarting argocd-server to apply configuration..."
+        kubectl rollout restart deployment argocd-server -n argocd
+        kubectl rollout status deployment argocd-server -n argocd --timeout=60s
+
         # 2. Read initial admin password from SOPS path
         echo "Reading admin password from SOPS decrypted file..."
         if [ -f "$SOPS_PASSWORD_PATH" ]; then
@@ -60,8 +74,18 @@
         else
           echo "WARNING: Ingress manifest not found at $INGRESS_MANIFEST_PATH. Skipping Ingress setup."
         fi
+
+        # 4. NEU: Die Root-Application injecten
+        echo "Applying ArgoCD Root Application..."
+        if [ -f "$ROOT_APP_MANIFEST_PATH" ]; then
+          # Wir warten kurz, bis die ArgoCD CRDs wirklich komplett aktiv sind
+          kubectl wait --for=condition=established --timeout=60s crd/applications.argoproj.io
+          kubectl apply -f "$ROOT_APP_MANIFEST_PATH"
+        else
+          echo "WARNING: Root Application manifest not found at $ROOT_APP_MANIFEST_PATH."
+        fi
         
-        echo "ArgoCD successfully installed, configured, and exposed!"
+        echo "ArgoCD successfully installed, configured, and synchronized with Git!"
       fi
     '';
 
@@ -70,9 +94,9 @@
       RemainAfterExit = true;
       Environment = [
         "KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
-        # Inject the dynamic paths into the script environment
         "SOPS_PASSWORD_PATH=${config.sops.secrets.argocd-password.path}"
         "INGRESS_MANIFEST_PATH=${./argocd-ingress.yaml}"
+        "ROOT_APP_MANIFEST_PATH=${./argocd-root-app.yaml}" # NEU: Pfad-Injektion
       ];
     };
   };

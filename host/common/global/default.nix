@@ -22,8 +22,8 @@
 
   nix.gc = {
     automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 7d";
+    dates = "weekly";
+    options = "--delete-older-than 14d";
   };
 
   services.irqbalance.enable = true;
@@ -35,6 +35,7 @@
 
   services.journald.extraConfig = ''
     Storage=volatile
+    RuntimeMaxUse=64M
     MaxRetentionSec=1day
   '';
 
@@ -48,7 +49,7 @@
   '';
 
   nix.settings = {
-    auto-optimise-store = true;
+    auto-optimise-store = false;
     experimental-features = lib.mkDefault "nix-command flakes";
     trusted-users = [ "root" "@wheel" ];
   };
@@ -68,6 +69,24 @@
   programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
+
+  fileSystems."/etc/ssh" = {
+    device = "/persist/etc/ssh";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  fileSystems."/var/lib/nixos" = {
+    device = "/persist/var/lib/nixos";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  fileSystems."/var/lib/systemd/timers" = {
+    device = "/persist/var/lib/systemd/timers";
+    fsType = "none";
+    options = [ "bind" ];
+  };
 
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";

@@ -18,6 +18,7 @@
     
     allowedUDPPorts = [
       8472 # k3s, flannel: required if using multi-node for inter-node networking
+      51821
     ];
   };
 
@@ -39,6 +40,8 @@
     token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
       "--write-kubeconfig-mode" "644"
+      "--flannel-backend=wireguard-native"
+      "--flannel-backend=wireguard-native,port=51821" # für geräte ausserhalb müsste man noch die öffentliche ip configurieren
       "--cluster-cidr=10.42.0.0/16,fd42:ffee:9999::/48"
       "--service-cidr=10.43.0.0/16,fd43:ffee:9999::/112"
       # "--cluster-reset"
