@@ -12,9 +12,15 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # NEU: Disko für deklaratives Partitionieren
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, sops-nix, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, sops-nix, disko, ... }@inputs:
     let
       inherit (self) outputs;
       lib = nixpkgs.lib // home-manager.lib;
@@ -56,14 +62,19 @@
         modules = [
           ./host/n1
           sops-nix.nixosModules.sops
+          disko.nixosModules.disko
+          ./host/global/disko.nix
         ];
       };
+
       n2 = lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = { inherit inputs outputs; };
         modules = [
           ./host/n2
           sops-nix.nixosModules.sops
+          disko.nixosModules.disko
+          ./host/n2/disko.nix
         ];
       };
       n3 = lib.nixosSystem {
@@ -72,6 +83,8 @@
         modules = [
           ./host/n3
           sops-nix.nixosModules.sops
+          disko.nixosModules.disko
+          ./host/n3/disko.nix
         ];
       };
     };
