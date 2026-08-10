@@ -37,7 +37,7 @@
                   };
                   "/nix" = {
                     mountpoint = "/nix";
-                    mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" "ro" ];
+                    mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
                   };
                 };
               };
