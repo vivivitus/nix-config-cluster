@@ -60,10 +60,9 @@
         system = "aarch64-linux";
         specialArgs = { inherit inputs outputs; };
         modules = [
-          ./host/n1
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
-          ./host/global/disko.nix
+          ./host/n2
         ];
       };
 
@@ -71,20 +70,18 @@
         system = "aarch64-linux";
         specialArgs = { inherit inputs outputs; };
         modules = [
-          ./host/n2
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
-          ./host/n2/disko.nix
+          ./host/n2
         ];
       };
       n3 = lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = { inherit inputs outputs; };
         modules = [
-          ./host/n3
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
-          ./host/n3/disko.nix
+          ./host/n3
         ];
       };
     };

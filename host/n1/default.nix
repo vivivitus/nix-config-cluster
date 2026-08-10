@@ -4,6 +4,7 @@
     ./networking
     ../common/global
     ../common/hardware/cm3588plus.nix
+    ../common/hardware/storage.nix
     ../common/networking
     ../common/user/vivian
     ./k3s.nix
