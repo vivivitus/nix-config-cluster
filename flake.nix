@@ -62,7 +62,7 @@
         modules = [
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
-          ./host/n2
+          ./host/n1
         ];
       };
 
