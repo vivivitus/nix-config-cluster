@@ -7,7 +7,7 @@
     loader = {
         systemd-boot.enable = true;
         systemd-boot.configurationLimit = 5;
-        efi.canTouchEfiVariables = true;
+        efi.canTouchEfiVariables = false; # Wie besprochen für das SPI-EDK2 sicher
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
@@ -30,6 +30,7 @@
     interval = "weekly"; 
   };
 
+  # --- Dateisysteme & Subvolumes ---
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
@@ -39,39 +40,20 @@
   fileSystems."/persist" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
-    options = [
-      "subvol=persist"
-      "compress=zstd"
-      "commit=120"
-      "noatime"
-      "nodiratime"
-    ];
+    options = [ "subvol=persist" "compress=zstd" "commit=120" "noatime" "nodiratime" ];
     neededForBoot = true;
   };
 
   fileSystems."/home" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
-    options = [
-      "subvol=home"
-      "compress=zstd"
-      "commit=120"
-      "noatime"
-      "nodiratime"
-    ];
+    options = [ "subvol=home" "compress=zstd" "commit=120" "noatime" "nodiratime" ];
   };
 
   fileSystems."/nix" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
-    options = [
-      "subvol=nix"
-      "compress=zstd"
-      "commit=120"
-      "noatime"
-      "nodiratime"
-      "ro"
-    ];
+    options = [ "subvol=nix" "compress=zstd" "commit=120" "noatime" "nodiratime" "ro" ];
   };
 
   fileSystems."/boot" = {
@@ -80,8 +62,20 @@
     options = [ "fmask=0077" "dmask=0077" "noatime" ];
   };
 
+  fileSystems."/etc/ssh" = {
+    device = "/persist/etc/ssh";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
   fileSystems."/var/lib/nixos" = {
     device = "/persist/var/lib/nixos";
+    fsType = "none";
+    options = [ "bind" ];
+  };
+
+  fileSystems."/var/lib/systemd/timers" = {
+    device = "/persist/var/lib/systemd/timers";
     fsType = "none";
     options = [ "bind" ];
   };

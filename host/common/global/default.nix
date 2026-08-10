@@ -74,24 +74,6 @@
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
 
-  fileSystems."/etc/ssh" = {
-    device = "/persist/etc/ssh";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/var/lib/nixos" = {
-    device = "/persist/var/lib/nixos";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/var/lib/systemd/timers" = {
-    device = "/persist/var/lib/systemd/timers";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";
   sops.age.generateKey = true;
