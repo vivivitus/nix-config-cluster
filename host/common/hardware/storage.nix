@@ -23,8 +23,7 @@
             root = {
               size = "100%";
               content = {
-                type = "filesystem";
-                format = "btrfs";
+                type = "btrfs";
                 extraArgs = [ "-L" "root" ];
                 subvolumes = {
                   "/persist" = {
