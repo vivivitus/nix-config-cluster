@@ -29,6 +29,7 @@
                   "/persist" = {
                     mountpoint = "/persist";
                     mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                    neededForBoot = true;
                   };
                   "/home" = {
                     mountpoint = "/home";
