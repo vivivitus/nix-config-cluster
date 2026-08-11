@@ -7,7 +7,7 @@
     loader = {
         systemd-boot.enable = true;
         systemd-boot.configurationLimit = 5;
-        efi.canTouchEfiVariables = false; # Wie besprochen für das SPI-EDK2 sicher
+        efi.canTouchEfiVariables = false;
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
@@ -34,24 +34,6 @@
     device = "none";
     fsType = "tmpfs";
     options = [ "defaults" "size=2G" "mode=755" ];
-  };
-
-  fileSystems."/etc/ssh" = {
-    device = "/persist/etc/ssh";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/var/lib/nixos" = {
-    device = "/persist/var/lib/nixos";
-    fsType = "none";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/var/lib/systemd/timers" = {
-    device = "/persist/var/lib/systemd/timers";
-    fsType = "none";
-    options = [ "bind" ];
   };
 
   swapDevices = [ ];
