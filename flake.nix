@@ -1,5 +1,5 @@
 {
-  inputs = {
+inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
@@ -13,10 +13,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # NEU: Disko für deklaratives Partitionieren
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    impermanence = {
+      url = "github:nix-community/impermanence";
     };
   };
 
