@@ -23,7 +23,7 @@ inputs = {
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, sops-nix, disko, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, sops-nix, disko, impermanence, ... }@inputs:
     let
       inherit (self) outputs;
       lib = nixpkgs.lib // home-manager.lib;
@@ -65,6 +65,7 @@ inputs = {
         modules = [
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
+          impermanence.nixosModules.impermanence
           ./host/n1
         ];
       };
