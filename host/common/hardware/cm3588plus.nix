@@ -36,5 +36,7 @@
     options = [ "defaults" "size=2G" "mode=755" ];
   };
 
+  fileSystems."/persist".neededForBoot = true;
+
   swapDevices = [ ];
 }
