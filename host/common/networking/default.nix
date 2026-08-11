@@ -1,11 +1,8 @@
-{lib, ...}:
+{ ... }:
 
 {
   networking = {
-    # k3s fails without this probably because ipv4 is not ready wit "any"
     dhcpcd.wait = "both";
-    #useDHCP = lib.mkDefault true;
-    #domain = "lan";
     nameservers = [ "10.0.1.1" "2a02:168:5bab:1::1" ];
   };
 
