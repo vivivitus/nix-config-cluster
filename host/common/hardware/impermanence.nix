@@ -7,11 +7,12 @@
     # Einzelne persistente Dateien
     files = [
       "/etc/machine-id"
+      "/etc/ssh/ssh_host_ed25519_key"
+      "/etc/ssh/ssh_host_ed25519_key.pub"
     ];
     
     # Persistente Ordner
     directories = [
-      "/etc/ssh"
       "/var/lib/nixos"
       "/var/lib/systemd/timers"
       "/var/log"
