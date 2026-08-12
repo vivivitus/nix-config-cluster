@@ -15,7 +15,8 @@
     directories = [
       "/var/lib/nixos"
       "/var/lib/systemd/timers"
-      "/var/log"
+      "/var/lib/rancher/k3s"
+      #"/var/log"
     ];
   };
 }
