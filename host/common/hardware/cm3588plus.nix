@@ -37,7 +37,6 @@
   };
 
   fileSystems."/persist".neededForBoot = true;
-  fileSystems."/etc/ssh".neededForBoot = true;
 
   swapDevices = [ ];
 }
