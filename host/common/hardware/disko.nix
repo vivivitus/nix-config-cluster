@@ -1,9 +1,9 @@
 {
   disko.devices = {
     disk = {
-      emmc = {
+      nvme0 = {
         type = "disk";
-        device = "/dev/mmcblk0";
+        device = "/dev/nvme0n1";
         content = {
           type = "gpt";
           partitions = {
@@ -24,7 +24,7 @@
               size = "100%";
               content = {
                 type = "btrfs";
-                extraArgs = [ "-L" "root" ];
+                extraArgs = [ "-L" "root0" ];
                 subvolumes = {
                   "/persist" = {
                     mountpoint = "/persist";
@@ -37,6 +37,11 @@
                   "/nix" = {
                     mountpoint = "/nix";
                     mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                  };
+                  
+                  "/storage0" = {
+                    mountpoint = "/var/lib/storage0";
+                    mountOptions = [ "noatime" "nodiratime" ];
                   };
                 };
               };
