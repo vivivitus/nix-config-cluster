@@ -1,26 +1,28 @@
+{ hostName, ipv4Address, ipv6Address, interface, ... }:
+
 {
   networking = {
-    hostName = "n1";
+    inherit hostName;
     useDHCP = false;
 
-    interfaces.enP4p65s0 = {
+    interfaces.${interface} = {
       ipv4.addresses = [{
-        address = "10.0.2.50";
+        address = ipv4Address;
         prefixLength = 24;
       }];
       ipv6.addresses = [{
-        address = "2a02:168:5bab:2::50"; 
+        address = ipv6Address; 
         prefixLength = 64;
       }];
     };
 
     defaultGateway = {
       address = "10.0.2.1";
-      interface = "enP4p65s0";
+      interface = interface;
     };
     defaultGateway6 = {
       address = "2a02:168:5bab:2::1"; 
-      interface = "enP4p65s0";
+      interface = interface;
     };
 
     nameservers = [ 

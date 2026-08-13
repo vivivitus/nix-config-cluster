@@ -7,7 +7,7 @@
     loader = {
         systemd-boot.enable = true;
         systemd-boot.configurationLimit = 5;
-        efi.canTouchEfiVariables = false;
+        efi.canTouchEfiVariables = true;
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
@@ -24,7 +24,7 @@
     };
   };
 
-  services.btrfs.autoScrub.enable = false;
+  services.btrfs.autoScrub.enable = true;
   services.fstrim = {
     enable = true;
     interval = "weekly"; 

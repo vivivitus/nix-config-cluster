@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
 {
+  environment.persistence."/persist".directories = [ "/var/lib/rancher/k3s" ];
+
   networking.firewall = {
     enable = true;
     trustedInterfaces = [
