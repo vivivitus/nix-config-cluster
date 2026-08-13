@@ -49,6 +49,7 @@ inputs = {
           interface = "enP4p65s0";
         };
         modules = [
+          home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
           impermanence.nixosModules.impermanence
