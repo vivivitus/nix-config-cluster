@@ -9,8 +9,10 @@
     ./networking.nix
   ] ++ (builtins.attrValues outputs.nixosModules);
 
-  # Keine Passwort-Eingabe für sudo
+  # inputs und outputs an home-manager weiterreichen
   home-manager.extraSpecialArgs = { inherit inputs outputs; };
+
+  # Keine Passwort-Eingabe für sudo
   security.sudo.wheelNeedsPassword = false;
 
   # Damit VS-Code via SSH funktioniert
@@ -70,18 +72,6 @@
     auto-optimise-store = true;
     experimental-features = lib.mkDefault "nix-command flakes";
     trusted-users = [ "root" "@wheel" ];
-  };
-
-  services.fail2ban = {
-    enable = true;
-    bantime-increment = {
-      enable = true;
-      maxtime = "24h";
-    };
-    ignoreIP = [
-      "10.0.1.1/24" "2a02:168:5bab:1::1/64"
-      "10.0.10.1/24" "2a02:168:5bab:10::1/64"
-    ];
   };
 
   hardware.enableRedistributableFirmware = true;

@@ -20,6 +20,7 @@ inputs = {
 
     impermanence = {
       url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -55,19 +56,36 @@ inputs = {
 
       n2 = lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = { inherit inputs outputs; };
+        specialArgs = {
+          inherit inputs outputs;
+          hostName = "n2";
+          ipv4Address = "10.0.2.51";
+          ipv6Address = "2a02:168:5bab:2::51";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
+          interface = "enP4p65s0";
+        };
         modules = [
-          sops-nix.nixosModules.sops
-          disko.nixosModules.disko
           ./host/n2
         ];
       };
+
       n3 = lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = { inherit inputs outputs; };
+        specialArgs = {
+          inherit inputs outputs;
+          hostName = "n3";
+          ipv4Address = "10.0.2.52";
+          ipv6Address = "2a02:168:5bab:2::52";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
+          interface = "enP4p65s0";
+        };
         modules = [
-          sops-nix.nixosModules.sops
-          disko.nixosModules.disko
           ./host/n3
         ];
       };
