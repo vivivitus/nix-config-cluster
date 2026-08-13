@@ -1,4 +1,4 @@
-{ hostName, ipv4Address, ipv6Address, ipv4Gateway, ipv6Gateway, ipv4Nameserver, ipv6Nameserver, interface, ... }:
+{ hostName, ipv4Address, ipv6Address, ipv4Gateway, ipv6Gateway, ipv4Nameserver ? "8.8.8.8", ipv6Nameserver ? "2001:4860:4860::8888", interface, ... }:
 
 {
   networking = {
@@ -31,6 +31,10 @@
     ];
   };
 
+  services.resolved = {
+    enable = true;
+  };
+
   services.openssh = {
     enable = true;
     generateHostKeys = false;
@@ -47,7 +51,15 @@
     ];
   };
 
-  services.resolved = {
+  services.fail2ban = {
     enable = true;
+    bantime-increment = {
+      enable = true;
+      maxtime = "24h";
+    };
+    ignoreIP = [
+      "10.0.1.1/24" "2a02:168:5bab:1::1/64"
+      "10.0.10.1/24" "2a02:168:5bab:10::1/64"
+    ];
   };
 }
