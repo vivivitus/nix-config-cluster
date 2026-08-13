@@ -3,6 +3,10 @@
 {
   imports = [
     inputs.home-manager.nixosModules.home-manager
+    inputs.sops-nix.nixosModules.sops
+    inputs.disko.nixosModules.disko
+    inputs.impermanence.nixosModules.impermanence
+    ./networking.nix
   ] ++ (builtins.attrValues outputs.nixosModules);
 
   # Keine Passwort-Eingabe für sudo
