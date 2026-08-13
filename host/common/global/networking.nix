@@ -1,4 +1,4 @@
-{ hostName, ipv4Address, ipv6Address, ipv4Gateway, ipv6Gateway, ipv4Nameserver ? "8.8.8.8", ipv6Nameserver ? "2001:4860:4860::8888", interface, ... }:
+{ hostName, ipv4Address, ipv6Address, ipv4Gateway, ipv6Gateway, ipv4Nameserver, ipv6Nameserver, interface, ... }:
 
 {
   networking = {

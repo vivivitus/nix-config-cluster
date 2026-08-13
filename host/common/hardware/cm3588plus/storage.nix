@@ -1,6 +1,7 @@
-{ lib, isFallback ? false, ... }:
+{ lib, config, ... }:
 
 let
+  isFallback = config._module.args.isFallback or false;
   deviceName = if isFallback then "/dev/mmcblk0" else "/dev/nvme0n1";
   diskKey    = if isFallback then "emmc" else "nvme0";
   rootLabel  = if isFallback then "root_fallback" else "root";
