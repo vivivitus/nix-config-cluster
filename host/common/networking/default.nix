@@ -1,9 +1,34 @@
-{ ... }:
+{ hostName, ipv4Address, ipv6Address, ipv4Gateway, ipv6Gateway, ipv4Nameserver, ipv6Nameserver, interface, ... }:
 
 {
   networking = {
-    dhcpcd.wait = "both";
-    nameservers = [ "10.0.1.1" "2a02:168:5bab:1::1" ];
+    inherit hostName;
+    useDHCP = false;
+
+    interfaces.${interface} = {
+      ipv4.addresses = [{
+        address = ipv4Address;
+        prefixLength = 24;
+      }];
+      ipv6.addresses = [{
+        address = ipv6Address; 
+        prefixLength = 64;
+      }];
+    };
+
+    defaultGateway = {
+      address = ipv4Gateway;
+      interface = interface;
+    };
+    defaultGateway6 = {
+      address = ipv6Gateway; 
+      interface = interface;
+    };
+
+    nameservers = [ 
+      ipv4Nameserver
+      ipv6Nameserver
+    ];
   };
 
   services.openssh = {

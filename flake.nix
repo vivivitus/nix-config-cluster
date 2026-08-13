@@ -42,6 +42,10 @@ inputs = {
           hostName = "n1";
           ipv4Address = "10.0.2.50";
           ipv6Address = "2a02:168:5bab:2::50";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
           interface = "enP4p65s0";
         };
         modules = [
