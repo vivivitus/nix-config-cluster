@@ -3,7 +3,6 @@
   imports = [
     ../common/global
     ../common/hardware/cm3588plus
-    ../common/hardware/impermanence.nix
     ../common/user/vivian
     ./k3s.nix
   ];
