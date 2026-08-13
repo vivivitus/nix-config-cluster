@@ -26,20 +26,4 @@
         name = "rockchip/rk3588-friendlyelec-cm3588-nas.dtb";
     };
   };
-
-  services.btrfs.autoScrub.enable = true;
-  services.fstrim = {
-    enable = true;
-    interval = "weekly"; 
-  };
-
-  fileSystems."/" = {
-    device = "none";
-    fsType = "tmpfs";
-    options = [ "defaults" "size=2G" "mode=755" ];
-  };
-
-  fileSystems."/persist".neededForBoot = true;
-
-  swapDevices = [ ];
 }

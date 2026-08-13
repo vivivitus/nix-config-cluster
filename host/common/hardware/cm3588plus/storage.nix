@@ -43,9 +43,7 @@ in {
                 mountpoint = "/nix";
                 mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
               };
-            }
-              # data storage mounten wenn es kein Fallback-System ist
-              // lib.optionalAttrs (!isFallback) {
+            } // lib.optionalAttrs (!isFallback) {
               "/storage0" = {
                 mountpoint = "/var/lib/storage0";
                 mountOptions = [ "noatime" "nodiratime" ];
@@ -55,5 +53,21 @@ in {
         };
       };
     };
+  };
+
+  fileSystems."/" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [ "defaults" "size=2G" "mode=755" ];
+  };
+
+  fileSystems."/persist".neededForBoot = true;
+
+  swapDevices = [ ];
+
+  services.btrfs.autoScrub.enable = true;
+  services.fstrim = {
+    enable = true;
+    interval = "weekly";
   };
 }
