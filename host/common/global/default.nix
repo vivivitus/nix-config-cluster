@@ -5,17 +5,22 @@
     inputs.home-manager.nixosModules.home-manager
   ] ++ (builtins.attrValues outputs.nixosModules);
 
+  # Keine Passwort-Eingabe für sudo
   home-manager.extraSpecialArgs = { inherit inputs outputs; };
   security.sudo.wheelNeedsPassword = false;
 
+  # Damit VS-Code via SSH funktioniert
+  programs.nix-ld.enable = true;
   systemd.user.extraConfig = ''
     DefaultEnvironment="PATH=/run/current-system/sw/bin:LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib"
   '';
 
+  # Damit nixos-rebuild switch ausgeführt werden kann mit einem ro root Filesystem
   systemd.sockets.nix-daemon = {
     socketConfig.ListenStream = "/run/nix/daemon-socket/socket";
   };
 
+  # Kein Gemeckere bei gewissen Paketen
   nixpkgs = {
     config = {
       permittedInsecurePackages = [  ];
@@ -24,6 +29,7 @@
     };
   };
 
+  # Wöchentlicher garbage collect, um das System sauber zu halten
   nix.gc = {
     automatic = true;
     dates = "weekly";
@@ -32,28 +38,32 @@
 
   services.irqbalance.enable = true;
 
+  # Teil des RAMs wird als zstd komprimierter swap genutzt
   zramSwap = {
     enable = true;
     memoryPercent = 50;
   };
 
+  # Volatiler journal, um Festplatte zu schonen
   services.journald.extraConfig = ''
     Storage=volatile
     RuntimeMaxUse=64M
     MaxRetentionSec=1day
   '';
 
+  # default tmpfs im ram halten, um Festplatte zu schonen
   boot = {
     tmp.useTmpfs = true;
     tmp.tmpfsSize = "25%";
   };
 
+  # Minimaler verbleibender Speicher
   nix.extraOptions = ''
     min-free = ${toString (500 * 1024 * 1024)}
   '';
 
   nix.settings = {
-    auto-optimise-store = false;
+    auto-optimise-store = true;
     experimental-features = lib.mkDefault "nix-command flakes";
     trusted-users = [ "root" "@wheel" ];
   };
@@ -70,11 +80,10 @@
     ];
   };
 
-  programs.nix-ld.enable = true;
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
 
-  # use persist storage, because otherwise the key isn't ready when sops is
+  # sops-nix Konfiguration mit verweis auf /persist, da der key beim booten sonst nicht vorhanden ist
   sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";
   sops.age.generateKey = true;

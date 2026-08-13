@@ -35,33 +35,15 @@ inputs = {
     overlays = import ./overlays {inherit inputs;};
 
     nixosConfigurations = {
-      test-node1 = lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs outputs; };
-        modules = [
-          ./host/test-node1
-          sops-nix.nixosModules.sops
-        ];
-      };
-      test-node2 = lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs outputs; };
-        modules = [
-          ./host/test-node2
-          sops-nix.nixosModules.sops
-        ];
-      };
-      test-node3 = lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs outputs; };
-        modules = [
-          ./host/test-node3
-          sops-nix.nixosModules.sops
-        ];
-      };
       n1 = lib.nixosSystem {
         system = "aarch64-linux";
-        specialArgs = { inherit inputs outputs; };
+        specialArgs = {
+          inherit inputs outputs;
+          hostName = "n1";
+          ipv4Address = "10.0.2.50";
+          ipv6Address = "2a02:168:5bab:2::50";
+          interface = "enP4p65s0";
+        };
         modules = [
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
@@ -91,27 +73,6 @@ inputs = {
     };
 
     homeConfigurations = {
-      "vivian@test-node1" = lib.homeManagerConfiguration {
-        modules = [
-          ./home/vivian/test-node1.nix
-        ];
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-      "vivian@test-node2" = lib.homeManagerConfiguration {
-        modules = [
-          ./home/vivian/test-node1.nix
-        ];
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-      "vivian@test-node3" = lib.homeManagerConfiguration {
-        modules = [
-          ./home/vivian/test-node1.nix
-        ];
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
       "vivian@n1" = lib.homeManagerConfiguration {
         modules = [
           ./home/vivian/n1.nix
