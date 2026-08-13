@@ -1,7 +1,6 @@
 { ... }: {
 
   imports = [
-    ./networking
     ../common/global
     ../common/hardware/cm3588plus.nix
     ../common/hardware/disko.nix
