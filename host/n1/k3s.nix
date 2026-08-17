@@ -1,4 +1,4 @@
-{ ... }:
+{ ipv4Address, ipv6Address, interface, ... }:
 
 {
   imports = [
@@ -9,10 +9,10 @@
   services.k3s = {
     clusterInit = true;
     extraFlags = [
-      "--tls-san" "10.0.2.50"
-      "--tls-san" "2a02:168:5bab:2::50"
-      "--node-ip=10.0.2.50,2a02:168:5bab:2::50"
-      "--flannel-iface=enP4p65s0"
+      "--tls-san" "${ipv4Address}"
+      "--tls-san" "${ipv6Address}"
+      "--node-ip=${ipv4Address},${ipv6Address}"
+      "--flannel-iface=${interface}"
     ];
   };
 }
