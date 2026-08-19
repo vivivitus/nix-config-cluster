@@ -7,7 +7,7 @@
   ];
 
   services.k3s = {
-    clusterInit = true;
+    #clusterInit = true;
     extraFlags = [
       "--tls-san" "${ipv4Address}"
       "--tls-san" "${ipv6Address}"

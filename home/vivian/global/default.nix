@@ -7,6 +7,8 @@
     ./vscode.nix
   ];
 
+  home.file.".kube/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/rancher/k3s/k3s.yaml";
+
   nixpkgs = {
     config = {
       allowUnfree = true;
