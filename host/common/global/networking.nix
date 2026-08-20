@@ -29,6 +29,10 @@
       ipv4Nameserver
       ipv6Nameserver
     ];
+
+    # hosts = {
+    #   "127.0.0.1" = [ "localhost" hostName ];
+    # };
   };
 
   services.resolved = {
