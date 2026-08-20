@@ -1,5 +1,16 @@
 { config, pkgs, ... }:
 
+let
+  flannelCfg = pkgs.writeText "flannel-cfg.json" (builtins.toJSON {
+    EnableIPv6 = true;
+    Network = "10.42.0.0/16";
+    IPv6Network = "fd42:ffee:9999::/48";
+    Backend = {
+      Type = "wireguard";
+      Port = 51830;
+    };
+  });
+in
 {
   environment.persistence."/persist" = {
     directories = [
@@ -14,19 +25,19 @@
     trustedInterfaces = [
       "flannel.1"
       "cni0"
-      ];
+    ];
 
     allowedTCPPorts = [
-      6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
-      2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
-      2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
+      6443 
+      2379 
+      2380 
       80
       443
     ];
     
     allowedUDPPorts = [
-      8472 # k3s, flannel: required if using multi-node for inter-node networking
-      51821
+      8472 
+      51830 # Hier direkt auf den neuen Port angepasst
     ];
   };
 
@@ -48,10 +59,10 @@
     token = config.sops.secrets.cluster-token.path;
     extraFlags = [ 
       "--write-kubeconfig-mode" "644"
-      "--flannel-backend=wireguard-native,port=51821" # für geräte ausserhalb müsste man noch die öffentliche ip configurieren
+      "--flannel-backend=wireguard-native"
+      "--flannel-conf" "${flannelCfg}"
       "--cluster-cidr=10.42.0.0/16,fd42:ffee:9999::/48"
       "--service-cidr=10.43.0.0/16,fd43:ffee:9999::/112"
-      # "--cluster-reset"
     ];
     manifests = {
       traefik-config = {
