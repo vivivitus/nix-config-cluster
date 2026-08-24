@@ -44,6 +44,10 @@ in {
                 mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
               };
             } // lib.optionalAttrs (!isFallback) {
+              "/k3s" = {
+                mountpoint = "/var/lib/rancher/k3s";
+                mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+              };
               "/storage0" = {
                 mountpoint = "/var/lib/storage0";
                 mountOptions = [ "noatime" "nodiratime" ];

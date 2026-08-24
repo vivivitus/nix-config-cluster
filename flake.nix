@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
     home-manager = {
@@ -24,21 +24,47 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, sops-nix, disko, impermanence, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      nixos-hardware,
+      sops-nix,
+      disko,
+      impermanence,
+      ...
+    }@inputs:
+
     let
       inherit (self) outputs;
+
       lib = nixpkgs.lib // home-manager.lib;
+
+      clusterConfigs = {
+        prod = {
+          gitRepository = "git@github.com:kubernarnold/the-cluster.git";
+        };
+        staging = {
+          gitRepository = "git@github.com:kubernarnold/the-cluster.git";
+        };
+      };
 
       hostConfigs = {
         n1 = {
+          clusterTarget = "prod";
           ipv4Address = "10.0.2.50";
           ipv6Address = "2a02:168:5bab:2::50";
         };
+
         n2 = {
+          clusterTarget = "prod";
           ipv4Address = "10.0.2.51";
           ipv6Address = "2a02:168:5bab:2::51";
         };
+
         n3 = {
+          clusterTarget = "prod";
           ipv4Address = "10.0.2.52";
           ipv6Address = "2a02:168:5bab:2::52";
         };
@@ -52,54 +78,101 @@
         interface = "enP4p65s0";
       };
 
-      mkHostArgs = hostName: {
-        inherit inputs outputs hostName;
-        inherit (hostConfigs.${hostName}) ipv4Address ipv6Address;
-        inherit (networkDefaults) ipv4Gateway ipv6Gateway ipv4Nameserver ipv6Nameserver interface;
-        allHosts = hostConfigs;
-      };
+      mkHostArgs =
+        hostName:
+        let
+          hostConfig = hostConfigs.${hostName};
+          clusterConfig = clusterConfigs.${hostConfig.clusterTarget};
+        in
+        {
+          inherit
+            inputs
+            outputs
+            hostName
+            clusterConfig
+            ;
+
+          inherit (hostConfig)
+            cluster
+            ipv4Address
+            ipv6Address
+            ;
+
+          inherit (networkDefaults)
+            ipv4Gateway
+            ipv6Gateway
+            ipv4Nameserver
+            ipv6Nameserver
+            interface
+            ;
+
+          allHosts = hostConfigs;
+        };
     in
     {
       inherit lib;
 
       nixosModules = import ./modules;
-      overlays = import ./overlays { inherit inputs; };
+
+      overlays = import ./overlays {
+        inherit inputs;
+      };
 
       nixosConfigurations = {
         n1 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n1";
-          modules = [ ./host/n1 ];
+          modules = [
+            ./host/n1
+          ];
         };
 
         n2 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n2";
-          modules = [ ./host/n2 ];
+          modules = [
+            ./host/n2
+          ];
         };
 
         n3 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n3";
-          modules = [ ./host/n3 ];
+          modules = [
+            ./host/n3
+          ];
         };
       };
 
       homeConfigurations = {
         "vivian@n1" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n1.nix ];
+          modules = [
+            ./home/vivian/n1.nix
+          ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
-          extraSpecialArgs = { inherit inputs outputs; };
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
         };
+
         "vivian@n2" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n2.nix ];
+          modules = [
+            ./home/vivian/n2.nix
+          ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
-          extraSpecialArgs = { inherit inputs outputs; };
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
         };
+
         "vivian@n3" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n3.nix ];
+          modules = [
+            ./home/vivian/n3.nix
+          ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
-          extraSpecialArgs = { inherit inputs outputs; };
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
         };
       };
     };

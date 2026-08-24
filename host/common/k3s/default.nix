@@ -12,13 +12,6 @@ let
   });
 in
 {
-  environment.persistence."/persist" = {
-    directories = [
-      "/var/lib/rancher/k3s/server/cred"
-      "/var/lib/rancher/k3s/server/tls"
-      "/var/lib/rancher/k3s/server/db"
-    ];
-  };
 
   networking.firewall = {
     enable = true;

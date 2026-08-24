@@ -18,4 +18,4 @@ spec:
           service:
             name: argocd-server
             port:
-              name: http # Geändert von https auf http
+              name: http
