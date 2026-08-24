@@ -1,24 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
+
 metadata:
-  name: root-application
+  name: root
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+
 spec:
   project: default
+
   source:
-    # HIER: Der Pfad zu deinem Git-Repository
-    repoURL: 'https://github.com/DEIN_USER/DEIN_CLUSTER_REPO.git'
-    targetRevision: HEAD
-    # HIER: Der Ordner im Repo, in dem die restlichen Cluster-Manifeste liegen
-    path: apps 
+    repoURL: https://github.com/DEIN_USER/cluster-manifests.git
+    targetRevision: main
+    path: .
+
   destination:
-    server: 'https://kubernetes.default.svc'
-    namespace: argocd
+    server: https://kubernetes.default.svc
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
