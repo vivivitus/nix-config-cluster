@@ -1,4 +1,4 @@
-{ lib, inputs, outputs, ... }:
+{ config, lib, inputs, outputs, ... }:
 
 {
   imports = [
@@ -84,19 +84,19 @@
   sops.age.generateKey = true;
   sops.defaultSopsFile = ../../../secrets/secrets.yaml;
 
-  # # key damit das private git vom cluster geclont werden kann
-  # sops.secrets.git-deploy-key = {
-  #   path = "/etc/ssh/git-deploy-key";
-  #   owner = "root";
-  #   group = "root";
-  #   mode = "0400";
-  # };
+  # key damit das private git vom cluster geclont werden kann
+  sops.secrets.cluster-deploy-key = {
+    path = "/etc/ssh/cluster-deploy-key";
+    owner = "root";
+    group = "root";
+    mode = "0400";
+  };
 
-  # environment.etc."ssh/ssh_config.d/git-deploy-key.conf".text = ''
-  #   Host gitlab.com-the-cluster
-  #     HostName gitlab.com
-  #     User git
-  #     IdentityFile ${config.sops.secrets.git-deploy-key.path}
-  #     IdentitiesOnly yes
-  # '';
+  environment.etc."ssh/ssh_config.d/cluster-deploy-key.conf".text = ''
+    Host gitlab.com-the-cluster
+      HostName gitlab.com
+      User git
+      IdentityFile ${config.sops.secrets.cluster-deploy-key.path}
+      IdentitiesOnly yes
+  '';
 }
