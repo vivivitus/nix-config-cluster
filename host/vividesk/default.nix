@@ -11,6 +11,7 @@
     ./networking.nix
     ../common/global
     ../common/user/vivian
+    ../common/optional/nix-ld.nix
     ../common/optional/python.nix
     ../common/optional/pipewire.nix
     ../common/optional/printing.nix

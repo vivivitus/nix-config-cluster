@@ -1,8 +1,7 @@
 {
-  description = "NixOS configuration";
+  description = "Personal NixOS and Home-Manager configuration";
 
   inputs = {
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
     hardware = {
@@ -27,71 +26,52 @@
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
-
   let
     inherit (self) outputs;
     lib = nixpkgs.lib // home-manager.lib;
-    architectures = [ "x86_64-linux" "aarch64-linux" ];
-    perArchitecture = f: lib.genAttrs architectures (arch: f packageArchitecture.${arch});
-    packageArchitecture = nixpkgs.legacyPackages;
+
+    hosts = {
+      vividesk = { arch = "x86_64-linux"; users = [ "vivian" ]; };
+      vivibook = { arch = "x86_64-linux"; users = [ "vivian" ]; };
+      crapbook = { arch = "x86_64-linux"; users = [ "vivian" ]; };
+      seniorbook = { arch = "x86_64-linux"; users = [ "vivian" ]; };
+      sopinian = { arch = "x86_64-linux"; users = [ "vivian" ]; };
+    };
+
+    architectures = lib.lists.unique (lib.mapAttrsToList (name: host: host.arch) hosts);
+    perArchitecture = f: lib.genAttrs architectures (arch: f nixpkgs.legacyPackages.${arch});
+
+    mkSystem = hostname: hostConfig: lib.nixosSystem {
+      system = hostConfig.arch;
+      specialArgs = { inherit inputs outputs; };
+      modules = [
+        ./host/${hostname}
+      ];
+    };
+
+    mkHome = hostname: hostConfig: username: {
+      name = "${username}@${hostname}";
+      value = lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${hostConfig.arch};
+        extraSpecialArgs = { inherit inputs outputs; };
+        modules = [ ./home/${username}/${hostname}.nix ];
+      };
+    };
+
+    generateAllHomes = lib.mapAttrsToList (hostname: hostConfig:
+      map (username: mkHome hostname hostConfig username) hostConfig.users
+    );
+
   in
   {
     inherit lib;
 
-    nixosModules = import ./modules/nixos;
+    nixosModules       = import ./modules/nixos;
     homeManagerModules = import ./modules/home-manager;
-    
-    overlays = import ./overlays {inherit inputs outputs;};
-    packages = perArchitecture (pkgs: import ./pkgs { inherit pkgs; });
-    #devShells = perArchitecture (pkgs: import ./shell.nix { inherit pkgs; });
-    #formatter = perArchitecture (pkgs: pkgs.nixpkgs-fmt);
+    overlays           = import ./overlays { inherit inputs outputs; };
+    packages           = perArchitecture (pkgs: import ./pkgs { inherit pkgs; });
 
-    nixosConfigurations = {
-      vividesk = lib.nixosSystem {
-        modules = [ ./host/vividesk ];
-        specialArgs = { inherit inputs outputs; };
-      };
-
-      vivibook = lib.nixosSystem {
-        modules = [ ./host/vivibook ];
-        specialArgs = { inherit inputs outputs; };
-      };
-
-      crapbook = lib.nixosSystem {
-        modules = [ ./host/crapbook ];
-        specialArgs = { inherit inputs outputs; };
-      };
-
-      sopinian = lib.nixosSystem {
-        modules = [ ./host/sopinian ];
-        specialArgs = { inherit inputs outputs; };
-      };
-    };
-
-    homeConfigurations = {
-      "vivian@vividesk" = lib.homeManagerConfiguration {
-        modules = [ ./home/vivian/vividesk.nix ];
-        pkgs = packageArchitecture.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-
-      "vivian@vivibook" = lib.homeManagerConfiguration {
-        modules = [ ./home/vivian/vivibook.nix ];
-        pkgs = packageArchitecture.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-
-      "vivian@crapbook" = lib.homeManagerConfiguration {
-        modules = [ ./home/vivian/crapbook.nix ];
-        pkgs = packageArchitecture.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-
-      "vivian@sopinian" = lib.homeManagerConfiguration {
-        modules = [ ./home/vivian/sopinian.nix ];
-        pkgs = packageArchitecture.x86_64-linux;
-        extraSpecialArgs = { inherit inputs outputs; };
-      };
-    };
+    nixosConfigurations = lib.mapAttrs mkSystem hosts;
+    homeConfigurations = lib.listToAttrs (lib.concatLists (generateAllHomes hosts));
   };
 }

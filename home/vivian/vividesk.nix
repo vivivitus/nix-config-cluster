@@ -1,10 +1,11 @@
 {
   imports = [
-    ./global
-    ./features/gui
-    ./features/work
-    ./features/virtualisation/virt-manager.nix
-    ./features/cli/ssh/rothstrasse.nix
+    ../common/global
+    ../common/features/gui
+    ../common/features/work
+    ../common/features/social
+    ../common/features/virtualisation/virt-manager.nix
+    ../common/features/cli/ssh/rothstrasse.nix
   ];
 
   home.stateVersion = "24.05";

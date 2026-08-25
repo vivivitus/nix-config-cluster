@@ -1,8 +1,9 @@
 {
   imports = [
-    ./global
-    ./features/gui
-    ./features/work
+    ../common/global
+    ../common/features/gui
+    ../common/features/social
+    ../common/features/work
   ];
 
   home.stateVersion = "24.05";
