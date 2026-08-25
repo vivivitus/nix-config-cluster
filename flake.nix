@@ -43,28 +43,36 @@
 
       clusterConfigs = {
         prod = {
-          gitRepository = "git@github.com:kubernarnold/the-cluster.git";
+          gitRepository = "git@gitlab.com-the-cluster:kubernarnold/the-cluster.git";
+          gitBranch = "main";
+          bootstrapRootApp = "root-app-prod.yaml";
         };
+
         staging = {
-          gitRepository = "git@github.com:kubernarnold/the-cluster.git";
+          gitRepository = "git@gitlab.com-the-cluster:kubernarnold/the-cluster.git";
+          gitBranch = "developing-config";
+          bootstrapRootApp = "root-app-staging.yaml";
         };
       };
 
       hostConfigs = {
         n1 = {
           clusterTarget = "prod";
+          clusterBootstrap = true;
           ipv4Address = "10.0.2.50";
           ipv6Address = "2a02:168:5bab:2::50";
         };
 
         n2 = {
           clusterTarget = "prod";
+          clusterBootstrap = false;
           ipv4Address = "10.0.2.51";
           ipv6Address = "2a02:168:5bab:2::51";
         };
 
         n3 = {
           clusterTarget = "prod";
+          clusterBootstrap = false;
           ipv4Address = "10.0.2.52";
           ipv6Address = "2a02:168:5bab:2::52";
         };
@@ -93,7 +101,8 @@
             ;
 
           inherit (hostConfig)
-            cluster
+            clusterTarget
+            clusterBootstrap
             ipv4Address
             ipv6Address
             ;
