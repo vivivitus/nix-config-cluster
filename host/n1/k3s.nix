@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./bootstrap/argocd.nix
     ../common/k3s
   ];
 

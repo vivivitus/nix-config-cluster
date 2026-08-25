@@ -92,6 +92,10 @@
     mode = "0400";
   };
 
+  programs.ssh.extraConfig = ''
+    Include /etc/ssh/ssh_config.d/*.conf
+  '';
+  
   environment.etc."ssh/ssh_config.d/cluster-deploy-key.conf".text = ''
     Host gitlab.com-the-cluster
       HostName gitlab.com
