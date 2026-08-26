@@ -104,6 +104,8 @@
       IdentitiesOnly yes
   '';
 
+  services.fwupd.enable = true;
+
   # # Mögliche Fixes für das NVME Problem
   # boot.kernelParams = [
   #   "nvme_core.default_ps_max_latency_us=0"
