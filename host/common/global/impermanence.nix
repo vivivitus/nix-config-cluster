@@ -13,7 +13,7 @@
     directories = [
       "/var/lib/nixos"
       "/var/lib/systemd/timers"
-      #"/var/log"
+      "/var/log"
     ];
   };
 }

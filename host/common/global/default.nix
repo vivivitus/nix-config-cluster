@@ -51,12 +51,12 @@
     memoryPercent = 50;
   };
 
-  # Volatiler journal, um Festplatte zu schonen
-  services.journald.extraConfig = ''
-    Storage=volatile
-    RuntimeMaxUse=64M
-    MaxRetentionSec=1day
-  '';
+  # # Volatiler journal, um Festplatte zu schonen
+  # services.journald.extraConfig = ''
+  #   Storage=volatile
+  #   RuntimeMaxUse=64M
+  #   MaxRetentionSec=1day
+  # '';
 
   # default tmpfs im ram halten, um Festplatte zu schonen
   boot = {
@@ -103,4 +103,13 @@
       IdentityFile ${config.sops.secrets.cluster-deploy-key.path}
       IdentitiesOnly yes
   '';
+
+  # # Mögliche Fixes für das NVME Problem
+  # boot.kernelParams = [
+  #   "nvme_core.default_ps_max_latency_us=0"
+  # ];
+
+  # boot.kernelParams = [
+  #   "pcie_aspm=off"
+  # ];
 }
