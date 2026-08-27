@@ -1,4 +1,4 @@
-{ pkgs, clusterTarget, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = with pkgs; [
