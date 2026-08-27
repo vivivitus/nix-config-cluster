@@ -1,5 +1,4 @@
 {
-  config,
   allHosts,
   ipv4Address,
   ipv6Address,

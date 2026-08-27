@@ -29,10 +29,6 @@
       self,
       nixpkgs,
       home-manager,
-      nixos-hardware,
-      sops-nix,
-      disko,
-      impermanence,
       ...
     }@inputs:
 
