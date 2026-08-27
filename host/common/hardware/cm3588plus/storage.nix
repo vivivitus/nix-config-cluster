@@ -3,9 +3,10 @@
 let
   isFallback = config._module.args.isFallback or false;
   deviceName = if isFallback then "/dev/mmcblk0" else "/dev/nvme0n1";
-  diskKey    = if isFallback then "emmc" else "nvme0";
-  rootLabel  = if isFallback then "root_fallback" else "root";
-in {
+  diskKey = if isFallback then "emmc" else "nvme0";
+  rootLabel = if isFallback then "root_fallback" else "root";
+in
+{
   disko.devices.disk.${diskKey} = {
     type = "disk";
     device = deviceName;
@@ -21,36 +22,70 @@ in {
             type = "filesystem";
             format = "vfat";
             mountpoint = "/boot";
-            extraArgs = [ "-n" "BOOT" ];
-            mountOptions = [ "fmask=0077" "dmask=0077" "noatime" ];
+            extraArgs = [
+              "-n"
+              "BOOT"
+            ];
+            mountOptions = [
+              "fmask=0077"
+              "dmask=0077"
+              "noatime"
+            ];
           };
         };
         root = {
           size = "100%";
           content = {
             type = "btrfs";
-            extraArgs = [ "-L" rootLabel ];
+            extraArgs = [
+              "-L"
+              rootLabel
+            ];
             subvolumes = {
               "/persist" = {
                 mountpoint = "/persist";
-                mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                mountOptions = [
+                  "compress=zstd"
+                  "commit=120"
+                  "noatime"
+                  "nodiratime"
+                ];
               };
               "/home" = {
                 mountpoint = "/home";
-                mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                mountOptions = [
+                  "compress=zstd"
+                  "commit=120"
+                  "noatime"
+                  "nodiratime"
+                ];
               };
               "/nix" = {
                 mountpoint = "/nix";
-                mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                mountOptions = [
+                  "compress=zstd"
+                  "commit=120"
+                  "noatime"
+                  "nodiratime"
+                ];
               };
-            } // lib.optionalAttrs (!isFallback) {
+            }
+            // lib.optionalAttrs (!isFallback) {
               "/k3s" = {
                 mountpoint = "/var/lib/rancher/k3s";
-                mountOptions = [ "compress=zstd" "commit=120" "noatime" "nodiratime" ];
+                mountOptions = [
+                  "compress=zstd"
+                  "commit=120"
+                  "noatime"
+                  "nodiratime"
+                ];
               };
               "/storage0" = {
                 mountpoint = "/var/lib/storage0";
-                mountOptions = [ "noatime" "nodiratime" ];
+                mountOptions = [
+                  "noatime"
+                  "nodiratime"
+                ];
               };
             };
           };
@@ -62,7 +97,11 @@ in {
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
-    options = [ "defaults" "size=2G" "mode=755" ];
+    options = [
+      "defaults"
+      "size=2G"
+      "mode=755"
+    ];
   };
 
   fileSystems."/persist".neededForBoot = true;

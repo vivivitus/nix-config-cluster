@@ -1,15 +1,17 @@
 { config, pkgs, ... }:
 
 let
-  flannelCfg = pkgs.writeText "flannel-cfg.json" (builtins.toJSON {
-    EnableIPv6 = true;
-    Network = "10.42.0.0/16";
-    IPv6Network = "fd42:ffee:9999::/48";
-    Backend = {
-      Type = "wireguard";
-      Port = 51830;
-    };
-  });
+  flannelCfg = pkgs.writeText "flannel-cfg.json" (
+    builtins.toJSON {
+      EnableIPv6 = true;
+      Network = "10.42.0.0/16";
+      IPv6Network = "fd42:ffee:9999::/48";
+      Backend = {
+        Type = "wireguard";
+        Port = 51830;
+      };
+    }
+  );
 in
 {
 
@@ -21,15 +23,15 @@ in
     ];
 
     allowedTCPPorts = [
-      6443 
-      2379 
-      2380 
+      6443
+      2379
+      2380
       80
       443
     ];
-    
+
     allowedUDPPorts = [
-      8472 
+      8472
       51830 # Hier direkt auf den neuen Port angepasst
     ];
   };
@@ -50,10 +52,12 @@ in
     role = "server";
     package = pkgs.k3s_1_35;
     token = config.sops.secrets.cluster-token.path;
-    extraFlags = [ 
-      "--write-kubeconfig-mode" "644"
+    extraFlags = [
+      "--write-kubeconfig-mode"
+      "644"
       "--flannel-backend=wireguard-native"
-      "--flannel-conf" "${flannelCfg}"
+      "--flannel-conf"
+      "${flannelCfg}"
       "--cluster-cidr=10.42.0.0/16,fd42:ffee:9999::/48"
       "--service-cidr=10.43.0.0/16,fd43:ffee:9999::/112"
     ];

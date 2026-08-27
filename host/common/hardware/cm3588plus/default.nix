@@ -1,4 +1,9 @@
-{ pkgs, config, modulesPath, ... }:
+{
+  pkgs,
+  config,
+  modulesPath,
+  ...
+}:
 
 {
   imports = [
@@ -8,10 +13,11 @@
 
   boot = {
     loader = {
-        systemd-boot.enable = true;
-        systemd-boot.configurationLimit = 5;
-        efi.canTouchEfiVariables = true;
-        systemd-boot.installDeviceTree = true;
+      systemd-boot = {
+        enable = true;
+        configurationLimit = 5;
+        installDeviceTree = true;
+      };
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
@@ -20,7 +26,6 @@
     kernelModules = [ ];
     extraModulePackages = [ ];
   };
-
 
   # Support für den onboard SPI-Chip auf der Rückseite des Boards (W25Q128JVSIQ)
   hardware.deviceTree = {
