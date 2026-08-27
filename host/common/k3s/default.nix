@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  clusterBootstrap,
+  ...
+}:
 
 let
   flannelCfg = pkgs.writeText "flannel-cfg.json" (
@@ -14,6 +19,14 @@ let
   );
 in
 {
+
+  imports =
+    if clusterBootstrap then
+      [
+        ./argocd.nix
+      ]
+    else
+      [ ];
 
   networking.firewall = {
     enable = true;
