@@ -54,10 +54,6 @@ in
       owner = config.users.users.root.name;
       group = config.users.users.root.name;
     };
-    argocd-password = {
-      owner = config.users.users.root.name;
-      group = config.users.users.root.name;
-    };
   };
 
   services.k3s = {
