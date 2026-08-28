@@ -9,6 +9,7 @@
 let
   deployKeyPath = config.sops.secrets.cluster-deploy-key.path;
   vaultTokenPath = config.sops.secrets.gitlab-vault-token.path;
+  argocdTokenPath = config.sops.secrets.gitlab-argocd-token.path;
 in
 {
   sops.secrets = {
@@ -24,15 +25,13 @@ in
       group = "root";
       mode = "0400";
     };
-  };
 
-  environment.etc."ssh/ssh_config.d/cluster-deploy-key.conf".text = ''
-    Host gitlab.com-the-cluster
-      HostName gitlab.com
-      User git
-      IdentityFile ${deployKeyPath}
-      IdentitiesOnly yes
-  '';
+    gitlab-argocd-token = {
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
+  };
 
   systemd.services.k3s-bootstrap = {
     description = "Bootstrap ${clusterTarget} k3s cluster from ${clusterConfig.gitRepository}";
@@ -40,6 +39,7 @@ in
     after = [
       "network-online.target"
       "k3s.service"
+      "sops-nix.service"
     ];
 
     requires = [
@@ -81,6 +81,10 @@ in
 
       DEPLOY_KEY="${deployKeyPath}"
       VAULT_TOKEN_FILE="${vaultTokenPath}"
+      ARGOCD_TOKEN_FILE="${argocdTokenPath}"
+
+      WORKDIR="$RUNTIME_DIRECTORY"
+      REPO_DIR="$WORKDIR/repo"
 
       log() {
         echo
@@ -94,42 +98,135 @@ in
         exit 1
       }
 
-      ######################################################################
-      # Preconditions & API Check
-      ######################################################################
+      cleanup() {
+        if [[ -n "''${REPO_DIR:-}" && -d "$REPO_DIR" ]]; then
+          rm -rf "$REPO_DIR"
+        fi
+      }
+
+      trap cleanup EXIT
+
+      ####################################################################
+      # Preconditions
+      ####################################################################
 
       log "Bootstrapping cluster target: ${clusterTarget}"
 
-      [[ -f "$KUBECONFIG" ]] || die "Kubeconfig does not exist: $KUBECONFIG"
-      [[ -f "$VAULT_TOKEN_FILE" ]] || die "Vault token does not exist: $VAULT_TOKEN_FILE"
+      [[ -f "$KUBECONFIG" ]] \
+        || die "Kubeconfig does not exist: $KUBECONFIG"
+
+      [[ -f "$DEPLOY_KEY" ]] \
+        || die "Cluster deploy key does not exist: $DEPLOY_KEY"
+
+      [[ -f "$VAULT_TOKEN_FILE" ]] \
+        || die "GitLab vault token does not exist: $VAULT_TOKEN_FILE"
+
+      [[ -f "$ARGOCD_TOKEN_FILE" ]] \
+        || die "Argo CD GitLab token does not exist: $ARGOCD_TOKEN_FILE"
+
+      [[ -n "$WORKDIR" ]] \
+        || die "RUNTIME_DIRECTORY is not set"
+
+      mkdir -p "$WORKDIR"
+
+      ####################################################################
+      # Wait for Kubernetes
+      ####################################################################
 
       log "Waiting for Kubernetes API"
+
       until kubectl get --raw=/readyz >/dev/null 2>&1; do
         sleep 2
       done
+
       log "Kubernetes API is ready"
 
-      ######################################################################
-      # 1. Install Argo CD via Remote Kustomize
-      ######################################################################
+      ####################################################################
+      # Configure SSH for this service only
+      ####################################################################
+
+      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh \
+        -i $DEPLOY_KEY \
+        -o IdentitiesOnly=yes \
+        -o StrictHostKeyChecking=accept-new"
+
+      ####################################################################
+      # Clone cluster repository
+      ####################################################################
+
+      log "Cloning cluster repository"
+
+      rm -rf "$REPO_DIR"
+
+      git clone \
+        --depth 1 \
+        --branch "$REPO_BRANCH" \
+        "$REPO_URL" \
+        "$REPO_DIR"
+
+      [[ -d "$REPO_DIR/.git" ]] \
+        || die "Git repository was not cloned successfully"
+
+      log "Repository cloned successfully"
+
+      ####################################################################
+      # Install Argo CD
+      ####################################################################
 
       log "Installing Argo CD"
-      KUSTOMIZE_TARGET="''${REPO_URL}//k8s/bootstrap/argocd?ref=''${REPO_BRANCH}"
 
-      # Zweistufig anwenden, damit CRDs zuerst registriert werden
-      kubectl apply --server-side --force-conflicts -k "$KUSTOMIZE_TARGET" || kubectl apply -k "$KUSTOMIZE_TARGET"
+      kubectl apply \
+        --server-side \
+        --force-conflicts \
+        -k "$REPO_DIR/k8s/bootstrap/argocd"
 
-      log "Waiting for CRDs to be fully registered..."
-      sleep 10
+      log "Waiting for Argo CD CRDs to be registered"
 
-      log "Waiting for Argo CD components..."
-      kubectl rollout status deployment/argocd-server --namespace argocd --timeout=10m
-      kubectl rollout status deployment/argocd-repo-server --namespace argocd --timeout=10m
-      kubectl rollout status statefulset/argocd-application-controller --namespace argocd --timeout=10m
+      until kubectl get crd applications.argoproj.io >/dev/null 2>&1; do
+        sleep 2
+      done
 
-      ######################################################################
-      # 2. Create Bootstrap Secrets (ESO & Argo CD Repository)
-      ######################################################################
+      log "Waiting for Argo CD components"
+
+      kubectl rollout status \
+        deployment/argocd-server \
+        --namespace argocd \
+        --timeout=10m
+
+      kubectl rollout status \
+        deployment/argocd-repo-server \
+        --namespace argocd \
+        --timeout=10m
+
+      kubectl rollout status \
+        statefulset/argocd-application-controller \
+        --namespace argocd \
+        --timeout=10m
+
+      ####################################################################
+      # Create Argo CD repository credential
+      ####################################################################
+
+      log "Creating Argo CD repository credential"
+
+      kubectl create secret generic glab-pat-the-cluster \
+        --namespace argocd \
+        --from-literal=username="oauth2" \
+        --from-file=password="$ARGOCD_TOKEN_FILE" \
+        --from-literal=url="https://gitlab.com/kubernarnold/the-cluster.git" \
+        --dry-run=client \
+        -o yaml \
+        | kubectl label \
+            --local \
+            -f - \
+            argocd.argoproj.io/secret-type=repository \
+            --overwrite \
+            -o yaml \
+        | kubectl apply -f -
+
+      ####################################################################
+      # Create initial ESO bootstrap secret
+      ####################################################################
 
       log "Creating initial ESO bootstrap secret"
 
@@ -145,39 +242,62 @@ in
         -o yaml \
         | kubectl apply -f -
 
-      ######################################################################
-      # 3. Apply Root Application
-      ######################################################################
+      ####################################################################
+      # Apply root application
+      ####################################################################
+
+      ROOT_APP_PATH="$REPO_DIR/k8s/bootstrap/$ROOT_APP_FILE"
+
+      [[ -f "$ROOT_APP_PATH" ]] \
+        || die "Root application does not exist: $ROOT_APP_PATH"
 
       log "Applying root application: $ROOT_APP_FILE"
 
-      # Ins temporäre RuntimeDirectory wechseln
-      cd "$RUNTIME_DIRECTORY" 2>/dev/null || cd "''${XDG_RUNTIME_DIR:-/run}/k3s-bootstrap"
+      kubectl apply -f "$ROOT_APP_PATH"
 
-      # Repo kurz flach auschecken (nutzt automatisch deine SSH-Config mit dem Deploy-Key!)
-      git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" repo-temp
+      ####################################################################
+      # Wait for root application
+      ####################################################################
 
-      # Root-App lokal anwenden
-      kubectl apply -f "repo-temp/k8s/bootstrap/$ROOT_APP_FILE"
+      log "Waiting for root-app to be created"
 
-      # Aufräumen
-      rm -rf repo-temp
+      until kubectl get application root-app \
+        --namespace argocd \
+        >/dev/null 2>&1; do
 
-      log "Waiting for root-app"
-      until kubectl get application root-app --namespace argocd >/dev/null 2>&1; do
         sleep 2
       done
 
-      ######################################################################
-      # 4. Restart Argo CD to pick up ConfigMaps (wie in deiner README)
-      ######################################################################
+      log "root-app created"
 
-      log "Restarting Argo CD server to apply configurations"
-      kubectl rollout restart deployment -n argocd argocd-server
-      kubectl rollout status deployment -n argocd argocd-server --timeout=5m
+      ####################################################################
+      # Restart Argo CD server
+      #
+      # Required because argocd-cmd-params-cm is installed as part of the
+      # self-managed Argo CD application and the server must pick up the
+      # updated command parameters.
+      ####################################################################
 
-      log "Bootstrap completed successfully!"
-      kubectl get applications --namespace argocd || true
+      log "Restarting Argo CD server"
+
+      kubectl rollout restart \
+        deployment/argocd-server \
+        --namespace argocd
+
+      kubectl rollout status \
+        deployment/argocd-server \
+        --namespace argocd \
+        --timeout=5m
+
+      ####################################################################
+      # Done
+      ####################################################################
+
+      log "Bootstrap completed successfully"
+
+      kubectl get applications \
+        --namespace argocd \
+        || true
     '';
   };
 }
