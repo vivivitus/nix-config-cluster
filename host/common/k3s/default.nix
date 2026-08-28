@@ -28,6 +28,10 @@ in
     else
       [ ];
 
+  environment.systemPackages = [
+    pkgs.openiscsi
+  ];
+
   networking.firewall = {
     enable = true;
     trustedInterfaces = [
