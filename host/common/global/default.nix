@@ -74,34 +74,9 @@
       generateKey = true;
     };
     defaultSopsFile = ../../../secrets/secrets.yaml;
-    secrets.cluster-deploy-key = {
-      path = "/etc/ssh/cluster-deploy-key";
-      owner = "root";
-      group = "root";
-      mode = "0400";
-    };
   };
 
   programs.ssh.extraConfig = ''
     Include /etc/ssh/ssh_config.d/*.conf
   '';
-
-  environment.etc."ssh/ssh_config.d/cluster-deploy-key.conf".text = ''
-    Host gitlab.com-the-cluster
-      HostName gitlab.com
-      User git
-      IdentityFile ${config.sops.secrets.cluster-deploy-key.path}
-      IdentitiesOnly yes
-  '';
-
-  services.fwupd.enable = true;
-
-  # # Mögliche Fixes für das NVME Problem
-  # boot.kernelParams = [
-  #   "nvme_core.default_ps_max_latency_us=0"
-  # ];
-
-  # boot.kernelParams = [
-  #   "pcie_aspm=off"
-  # ];
 }
