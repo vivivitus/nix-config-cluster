@@ -40,12 +40,10 @@ in
     after = [
       "network-online.target"
       "k3s.service"
-      "sops-nix.service"
     ];
 
     requires = [
       "k3s.service"
-      "sops-nix.service"
     ];
 
     wants = [
@@ -117,12 +115,17 @@ in
 
       log "Installing Argo CD"
       KUSTOMIZE_TARGET="''${REPO_URL}//k8s/bootstrap/argocd?ref=''${REPO_BRANCH}"
-      kubectl apply -k "$KUSTOMIZE_TARGET"
+
+      # Zweistufig anwenden, damit CRDs zuerst registriert werden
+      kubectl apply --server-side --force-conflicts -k "$KUSTOMIZE_TARGET" || kubectl apply -k "$KUSTOMIZE_TARGET"
+
+      log "Waiting for CRDs to be fully registered..."
+      sleep 10
 
       log "Waiting for Argo CD components..."
       kubectl rollout status deployment/argocd-server --namespace argocd --timeout=10m
       kubectl rollout status deployment/argocd-repo-server --namespace argocd --timeout=10m
-      kubectl rollout status deployment/argocd-application-controller --namespace argocd --timeout=10m
+      kubectl rollout status statefulset/argocd-application-controller --namespace argocd --timeout=10m
 
       ######################################################################
       # 2. Create Bootstrap Secrets (ESO & Argo CD Repository)
@@ -147,8 +150,18 @@ in
       ######################################################################
 
       log "Applying root application: $ROOT_APP_FILE"
-      ROOT_APP_URL="''${REPO_URL%.git}/-/raw/''${REPO_BRANCH}/k8s/bootstrap/''${ROOT_APP_FILE}"
-      kubectl apply -f "$ROOT_APP_URL"
+
+      # Ins temporäre RuntimeDirectory wechseln
+      cd "$RUNTIME_DIRECTORY" 2>/dev/null || cd "''${XDG_RUNTIME_DIR:-/run}/k3s-bootstrap"
+
+      # Repo kurz flach auschecken (nutzt automatisch deine SSH-Config mit dem Deploy-Key!)
+      git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" repo-temp
+
+      # Root-App lokal anwenden
+      kubectl apply -f "repo-temp/k8s/bootstrap/$ROOT_APP_FILE"
+
+      # Aufräumen
+      rm -rf repo-temp
 
       log "Waiting for root-app"
       until kubectl get application root-app --namespace argocd >/dev/null 2>&1; do
