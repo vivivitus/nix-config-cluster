@@ -32,6 +32,10 @@ in
     pkgs.openiscsi
   ];
 
+  systemd.tmpfiles.rules = [
+    "L+ /usr/bin/iscsiadm - - - - /run/current-system/sw/bin/iscsiadm"
+  ];
+
   networking.firewall = {
     enable = true;
     trustedInterfaces = [
