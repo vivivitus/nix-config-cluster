@@ -135,11 +135,26 @@ in
 
       log "Waiting for Kubernetes API"
 
-      until kubectl get --raw=/readyz >/dev/null 2>&1; do
+      for i in $(seq 1 60); do
+        echo "Waiting for Kubernetes API (attempt $i/60)..."
+
+        if kubectl \
+          --request-timeout=5s \
+          get --raw='/readyz' >/dev/null 2>&1 \
+          && kubectl \
+            --request-timeout=5s \
+            get --raw='/openapi/v2' >/dev/null 2>&1
+        then
+          log "Kubernetes API and OpenAPI are ready"
+          break
+        fi
+
+        if [ "$i" -eq 60 ]; then
+          die "Kubernetes API did not become ready within 120 seconds"
+        fi
+
         sleep 2
       done
-
-      log "Kubernetes API is ready"
 
       ####################################################################
       # Configure SSH for this service only
@@ -174,6 +189,9 @@ in
       ####################################################################
 
       log "Installing Argo CD"
+
+      kubectl --request-timeout=10s get --raw='/readyz'
+      kubectl --request-timeout=10s get --raw='/openapi/v2' >/dev/null
 
       kubectl apply \
         --server-side \
