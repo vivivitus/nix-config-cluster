@@ -94,6 +94,13 @@ in
               additionalArguments:
                 - "--entryPoints.web.forwardedHeaders.insecure=true"
                 - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+              resources:
+              requests:
+                cpu: "50m"
+                memory: "50Mi"
+              limits:
+                cpu: "500m"
+                memory: "250Mi"
             '';
           };
         };
