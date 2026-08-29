@@ -16,7 +16,7 @@ let
       Backend = {
         Type = "wireguard";
         ListenPort = 51830;
-        ListenPortV6 = 51830;
+        ListenPortV6 = 51831;
       };
     }
   );
@@ -51,6 +51,7 @@ in
 
     allowedUDPPorts = [
       51830
+      51831
     ];
   };
 
@@ -60,7 +61,7 @@ in
   };
 
   services.k3s = {
-    enable = false;
+    enable = true;
     role = "server";
     package = pkgs.k3s_1_35;
 
