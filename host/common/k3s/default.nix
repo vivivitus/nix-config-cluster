@@ -25,8 +25,8 @@ in
 
   imports = [
     ./longhorn-storage.nix
-  ]
-  ++ (if clusterBootstrap then [ ./bootstrap ] else [ ]);
+  ];
+  #++ (if clusterBootstrap then [ ./bootstrap ] else [ ]);
 
   environment.systemPackages = [
     pkgs.openiscsi
@@ -65,7 +65,7 @@ in
   };
 
   services.k3s = {
-    enable = true;
+    enable = false;
     role = "server";
     package = pkgs.k3s_1_35;
 
