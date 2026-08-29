@@ -13,7 +13,8 @@ let
       IPv6Network = "fd42:ffee:9999::/48";
       Backend = {
         Type = "wireguard";
-        Port = 51830;
+        ListenPort = 51830;
+        ListenPortV6 = 51830;
       };
     }
   );
@@ -53,7 +54,7 @@ in
 
     allowedUDPPorts = [
       8472
-      51830 # Hier direkt auf den neuen Port angepasst
+      51830
     ];
   };
 
