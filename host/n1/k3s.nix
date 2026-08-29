@@ -10,6 +10,10 @@
     ../common/k3s
   ];
 
+  services.openiscsi = {
+    name = "iqn.2026-08.locl:n3";
+  };
+
   cluster.longhorn.storagePaths = [
     "/var/lib/storage0/longhorn"
   ];
