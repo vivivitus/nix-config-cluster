@@ -28,14 +28,6 @@ in
   ]
   ++ (if clusterBootstrap then [ ./bootstrap ] else [ ]);
 
-  environment.systemPackages = [
-    pkgs.openiscsi
-  ];
-
-  systemd.tmpfiles.rules = [
-    "L+ /usr/bin/iscsiadm - - - - /run/current-system/sw/bin/iscsiadm"
-  ];
-
   networking.firewall = {
     enable = true;
 
@@ -67,7 +59,7 @@ in
   services.k3s = {
     enable = true;
     role = "server";
-    package = pkgs.k3s_1_35;
+    package = pkgs.k3s_1_36;
 
     token = config.sops.secrets.cluster-token.path;
 
