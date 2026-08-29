@@ -1,4 +1,8 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ...
+}:
 
 let
   cfg = config.cluster.longhorn;
@@ -15,4 +19,10 @@ in
   config = {
     systemd.tmpfiles.rules = map (path: "d ${path} 0750 root root -") cfg.storagePaths;
   };
+
+  services.openiscsi.enable = true;
+
+  systemd.tmpfiles.rules = [
+    "L+ /usr/bin/iscsiadm - - - - /run/current-system/sw/bin/iscsiadm"
+  ];
 }
