@@ -23,7 +23,11 @@ let
 in
 {
 
-  # imports = if clusterBootstrap then [ ./argocd.nix ] else [ ];
+  imports = [
+    ./longhorn-storage.nix
+  ]
+  ++ (if clusterBootstrap then [ ./bootstrap ] else [ ]);
+
   environment.systemPackages = [
     pkgs.openiscsi
   ];
