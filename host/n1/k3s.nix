@@ -10,6 +10,10 @@
     ../common/k3s
   ];
 
+  cluster.longhorn.storagePaths = [
+    "/var/lib/storage0/longhorn"
+  ];
+
   services.k3s = {
     clusterInit = true;
     extraFlags = [

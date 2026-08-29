@@ -11,6 +11,10 @@
     ../common/k3s
   ];
 
+  cluster.longhorn.storagePaths = [
+    "/var/lib/storage0/longhorn"
+  ];
+
   services.k3s = {
     serverAddr = "https://${allHosts.n1.ipv4Address}:6443";
     extraFlags = [
