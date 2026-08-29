@@ -11,21 +11,20 @@
     ../common/k3s
   ];
 
-  services.openiscsi = {
-    name = "iqn.2026-08.locl:n2";
-  };
-
   cluster.longhorn.storagePaths = [
     "/var/lib/storage0/longhorn"
   ];
 
   services.k3s = {
     serverAddr = "https://${allHosts.n1.ipv4Address}:6443";
+
     extraFlags = [
       "--tls-san"
       "${ipv4Address}"
+
       "--tls-san"
       "${ipv6Address}"
+
       "--node-ip=${ipv4Address},${ipv6Address}"
       "--flannel-iface=${interface}"
     ];
