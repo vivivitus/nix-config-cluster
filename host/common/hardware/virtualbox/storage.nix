@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   disko.devices.disk.virtualbox = {
@@ -99,7 +99,7 @@
     };
   };
 
-  fileSystems."/" = {
+  fileSystems."/" = lib.mkForce {
     device = "none";
     fsType = "tmpfs";
 

@@ -1,12 +1,12 @@
 {
-  isVM ? false,
+  isVirtualMachine ? false,
   ...
 }:
 
 {
   imports = [
     ../common/global
-    (if isVM then ../common/hardware/virtualbox else ../common/hardware/cm3588plus)
+    (if isVirtualMachine then ../common/hardware/virtualbox else ../common/hardware/cm3588plus)
     ../common/user/vivian
     ../common/user/root
     ./k3s.nix
