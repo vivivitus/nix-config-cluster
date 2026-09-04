@@ -1,9 +1,16 @@
-{ lib, pkgs, config, outputs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  outputs,
+  ...
+}:
 
 {
   imports = [
     ../features/cli
-  ] ++ (builtins.attrValues outputs.homeManagerModules);
+  ]
+  ++ (builtins.attrValues outputs.homeManagerModules);
 
   nixpkgs = {
     #overlays = builtins.attrValues outputs.overlays;
@@ -16,7 +23,10 @@
   nix = {
     package = lib.mkDefault pkgs.nix;
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       warn-dirty = false;
     };
   };

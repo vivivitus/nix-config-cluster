@@ -4,7 +4,8 @@
     ./locales.nix
     ./nix.nix
     ./timezone.nix
-  ] ++ (builtins.attrValues outputs.nixosModules);
+  ]
+  ++ (builtins.attrValues outputs.nixosModules);
 
   home-manager.extraSpecialArgs = { inherit inputs outputs; };
 

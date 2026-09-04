@@ -1,8 +1,9 @@
 { pkgs, config, ... }:
-let ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
+let
+  ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
 in
 {
-  users.groups.plugdev = {};
+  users.groups.plugdev = { };
   users.mutableUsers = true;
   users.users.vivian = {
     isNormalUser = true;
@@ -15,7 +16,8 @@ in
       "scanner"
       "plugdev"
       "dialout"
-    ] ++ ifTheyExist [
+    ]
+    ++ ifTheyExist [
       "deluge"
       "wireshark"
       "libvirtd"

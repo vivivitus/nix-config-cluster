@@ -1,7 +1,7 @@
 { pkgs, inputs, ... }: {
   imports = [
     inputs.hardware.nixosModules.common-cpu-intel
-   # inputs.hardware.nixosModules.common-gpu-intel
+    # inputs.hardware.nixosModules.common-gpu-intel
     inputs.hardware.nixosModules.common-pc-ssd
 
     ./storage.nix
@@ -21,7 +21,6 @@
 
   ];
 
-
   nixpkgs.hostPlatform.system = "x86_64-linux";
   system.stateVersion = "24.05";
 
@@ -31,11 +30,23 @@
   boot = {
     kernelPackages = pkgs.linuxKernel.packages.linux_zen;
     kernelModules = [ "kvm-intel" ];
-    kernelParams = [ "iomem=relaxed" "i915.force_probe=a7a0" "i915.enable_guc=2" ];
+    kernelParams = [
+      "iomem=relaxed"
+      "i915.force_probe=a7a0"
+      "i915.enable_guc=2"
+    ];
     extraModulePackages = [ ];
 
     initrd = {
-      availableKernelModules = [ "i915" "nvme" "xhci_pci" "ahci" "uas" "usb_storage" "sd_mod" ];
+      availableKernelModules = [
+        "i915"
+        "nvme"
+        "xhci_pci"
+        "ahci"
+        "uas"
+        "usb_storage"
+        "sd_mod"
+      ];
       kernelModules = [ ];
       luks.devices."root".device = "/dev/disk/by-uuid/fd20514c-b8b7-48ca-ac37-5f7460c8565f";
     };

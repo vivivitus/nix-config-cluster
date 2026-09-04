@@ -3,11 +3,12 @@
 {
   home.packages = with pkgs; [
     nixfmt
+    statix
+    deadnix
     nixd
-    direnv
   ];
 
-  # programs.vscode.package = pkgs.vscode.fhsWithPackages (ps: with ps; [ 
+  # programs.vscode.package = pkgs.vscode.fhsWithPackages (ps: with ps; [
   #   openocd
   #   gcc-arm-embedded
   # ]);

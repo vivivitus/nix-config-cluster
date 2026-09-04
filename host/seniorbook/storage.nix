@@ -2,8 +2,8 @@
 
 {
 
-  imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
   services.btrfs.autoScrub = {
@@ -12,32 +12,37 @@
     fileSystems = [ "/" ];
   };
 
-    fileSystems."/" =
-    { device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
-      fsType = "btrfs";
-      options = [ "subvol=root" ];
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
+    fsType = "btrfs";
+    options = [ "subvol=root" ];
+  };
 
-  fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
-      fsType = "btrfs";
-      options = [ "subvol=home" "compress=zstd:1" ];
-    };
+  fileSystems."/home" = {
+    device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
+    fsType = "btrfs";
+    options = [
+      "subvol=home"
+      "compress=zstd:1"
+    ];
+  };
 
-  fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
-      fsType = "btrfs";
-      options = [ "subvol=nix" ];
-    };
+  fileSystems."/nix" = {
+    device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
+    fsType = "btrfs";
+    options = [ "subvol=nix" ];
+  };
 
-  fileSystems."/swap" =
-    { device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
-      fsType = "btrfs";
-      options = [ "subvol=swap" ];
-    };
+  fileSystems."/swap" = {
+    device = "/dev/disk/by-uuid/28d7c556-9a6e-447a-bd22-bf284320b217";
+    fsType = "btrfs";
+    options = [ "subvol=swap" ];
+  };
 
-  swapDevices = [{
-    device = "/swap/swapfile";
-    size = 2*1024;
-  }];
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+      size = 2 * 1024;
+    }
+  ];
 }

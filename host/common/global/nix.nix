@@ -3,8 +3,14 @@
 {
   nix = {
     settings = {
-      trusted-users = [ "root" "@wheel" ];
-      experimental-features = [ "nix-command" "flakes" ];
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       warn-dirty = false;
       flake-registry = ""; # Disable global flake registry
     };

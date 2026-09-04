@@ -1,0 +1,13 @@
+{
+  "nix.serverSettings": {
+    "nixd": {
+      "formatting": {
+        "command": ["nixfmt"]
+      }
+    }
+  },
+
+  "[nix]": {
+    "editor.formatOnSave": true
+  }
+}

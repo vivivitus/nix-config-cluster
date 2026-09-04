@@ -12,44 +12,62 @@
     interval = "weekly";
   };
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
-      fsType = "btrfs";
-      options = [ "subvol=root" "compress=zstd:1" ];
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
+    fsType = "btrfs";
+    options = [
+      "subvol=root"
+      "compress=zstd:1"
+    ];
+  };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/7D01-47E4";
-      fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
-    };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/7D01-47E4";
+    fsType = "vfat";
+    options = [
+      "fmask=0022"
+      "dmask=0022"
+    ];
+  };
 
-  fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
-      fsType = "btrfs";
-      options = [ "subvol=home" "compress=zstd" ];
-    };
+  fileSystems."/home" = {
+    device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
+    fsType = "btrfs";
+    options = [
+      "subvol=home"
+      "compress=zstd"
+    ];
+  };
 
-  fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
-      fsType = "btrfs";
-      options = [ "subvol=nix" "compress=zstd:1" "noatime" ];
-    };
+  fileSystems."/nix" = {
+    device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
+    fsType = "btrfs";
+    options = [
+      "subvol=nix"
+      "compress=zstd:1"
+      "noatime"
+    ];
+  };
 
-  fileSystems."/swap" =
-    { device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
-      fsType = "btrfs";
-      options = [ "subvol=swap" ];
-    };
+  fileSystems."/swap" = {
+    device = "/dev/disk/by-uuid/9ba30658-dba5-40b6-8126-04220245fe91";
+    fsType = "btrfs";
+    options = [ "subvol=swap" ];
+  };
 
-  swapDevices = [{
-    device = "/swap/swapfile";
-    size = 32*1024;
-  }];
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+      size = 32 * 1024;
+    }
+  ];
 
-  fileSystems."/home/vivian/Archive" =
-    { device = "/dev/sdb";
-      fsType = "btrfs";
-      options = [ "noatime" "compress-force=zstd:5" ];
-    };
+  fileSystems."/home/vivian/Archive" = {
+    device = "/dev/sdb";
+    fsType = "btrfs";
+    options = [
+      "noatime"
+      "compress-force=zstd:5"
+    ];
+  };
 }

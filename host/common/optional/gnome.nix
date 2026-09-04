@@ -11,12 +11,17 @@
   '';
 
   # nautilus thumbnails etc.
-  environment.sessionVariables.GST_PLUGIN_SYSTEM_PATH_1_0 = lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (with pkgs.gst_all_1; [
-    gst-plugins-good
-    gst-plugins-bad
-    gst-plugins-ugly
-    gst-libav
-  ]);
+  environment.sessionVariables.GST_PLUGIN_SYSTEM_PATH_1_0 =
+    lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0"
+      (
+        with pkgs.gst_all_1;
+        [
+          gst-plugins-good
+          gst-plugins-bad
+          gst-plugins-ugly
+          gst-libav
+        ]
+      );
 
   environment = {
     systemPackages = with pkgs; [
@@ -42,18 +47,21 @@
       })
     ];
 
-    gnome.excludePackages = (with pkgs; [
-      gnome-tour
-      yelp
-      epiphany
-      geary
-      cheese
-      gnome-calculator
-      gvfs
-      gnome-characters
-      gnome-weather
-      gnome-clocks
-    ]);
+    gnome.excludePackages = (
+      with pkgs;
+      [
+        gnome-tour
+        yelp
+        epiphany
+        geary
+        cheese
+        gnome-calculator
+        gvfs
+        gnome-characters
+        gnome-weather
+        gnome-clocks
+      ]
+    );
   };
 
   services = {
@@ -73,7 +81,7 @@
       gnome-keyring.enable = true;
       evolution-data-server.enable = true;
     };
-    
+
     colord.enable = true;
   };
 }

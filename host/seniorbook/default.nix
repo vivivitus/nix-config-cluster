@@ -13,7 +13,6 @@
     ../common/optional/gnome.nix
   ];
 
-
   nixpkgs.hostPlatform.system = "x86_64-linux";
   system.stateVersion = "26.05";
 
@@ -23,11 +22,19 @@
   boot = {
     kernelPackages = pkgs.linuxKernel.packages.linux_zen;
     kernelModules = [ "kvm-intel" ];
-    kernelParams = [  ];
+    kernelParams = [ ];
     extraModulePackages = [ ];
 
     initrd = {
-      availableKernelModules = [ "i915" "uhci_hcd" "ehci_pci" "ahci" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+      availableKernelModules = [
+        "i915"
+        "uhci_hcd"
+        "ehci_pci"
+        "ahci"
+        "usb_storage"
+        "sd_mod"
+        "rtsx_pci_sdmmc"
+      ];
       kernelModules = [ ];
     };
 

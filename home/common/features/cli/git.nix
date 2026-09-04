@@ -8,7 +8,7 @@ in
     enable = true;
     settings = {
       user = {
-        name  = "vivivitus";
+        name = "vivivitus";
         email = "vivi_vitus@hotmail.com";
       };
       init.defaultBranch = "main";

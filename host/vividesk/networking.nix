@@ -2,6 +2,16 @@
   networking.hostName = "vividesk";
 
   networking.networkmanager.enable = true;
+
+  networking.extraHosts = ''
+    10.0.2.50 argocd.staging.locl
+    10.0.2.50 longhorn.staging.locl
+    10.0.2.50 grafana.staging.locl
+    10.0.2.50 victorialogs.staging.locl
+    10.0.2.50 alertmanager.staging.locl
+    10.0.2.50 vmsingle.staging.locl
+  '';
+
   networking.networkmanager.ensureProfiles.profiles = {
 
     bridge_port_1 = {
@@ -12,8 +22,12 @@
         master = "bridge_default";
         slave-type = "bridge";
       };
-      ipv4 = { method = "disabled"; };
-      ipv6 = { method = "disabled"; };
+      ipv4 = {
+        method = "disabled";
+      };
+      ipv6 = {
+        method = "disabled";
+      };
     };
 
     bridge_default = {
@@ -25,7 +39,7 @@
       };
       bridge = {
         interface-name = "bridge_default";
-        stp = "false"; 
+        stp = "false";
       };
       ipv4 = {
         method = "auto";
