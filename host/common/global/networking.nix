@@ -1,12 +1,13 @@
 {
+  lib,
   hostName,
   ipv4Address,
   ipv6Address,
   ipv4Gateway,
-  ipv6Gateway,
   ipv4Nameserver,
-  ipv6Nameserver,
   interface,
+  ipv6Gateway ? null,
+  ipv6Nameserver ? null,
   ...
 }:
 
@@ -22,6 +23,7 @@
           prefixLength = 24;
         }
       ];
+
       ipv6.addresses = [
         {
           address = ipv6Address;
@@ -34,29 +36,30 @@
       address = ipv4Gateway;
       inherit interface;
     };
-    defaultGateway6 = {
+
+    defaultGateway6 = lib.mkIf (ipv6Gateway != null) {
       address = ipv6Gateway;
       inherit interface;
     };
 
-    nameservers = [
-      ipv4Nameserver
-      ipv6Nameserver
-    ];
+    nameservers = [ ipv4Nameserver ] ++ lib.optional (ipv6Nameserver != null) ipv6Nameserver;
   };
 
   services = {
     resolved = {
       enable = true;
     };
+
     openssh = {
       enable = true;
       generateHostKeys = false;
       ports = [ 22 ];
+
       settings = {
         PasswordAuthentication = true;
         UseDns = true;
       };
+
       hostKeys = [
         {
           path = "/etc/ssh/ssh_host_ed25519_key";
@@ -64,12 +67,15 @@
         }
       ];
     };
+
     fail2ban = {
       enable = true;
+
       bantime-increment = {
         enable = true;
         maxtime = "24h";
       };
+
       ignoreIP = [
         "10.0.1.1/24"
         "2a02:168:5bab:1::1/64"

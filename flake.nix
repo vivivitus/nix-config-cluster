@@ -61,16 +61,44 @@
 
         n2 = {
           clusterTarget = "staging";
-          clusterBootstrap = false;
           ipv4Address = "10.0.2.51";
           ipv6Address = "2a02:168:5bab:2::51";
         };
 
         n3 = {
           clusterTarget = "staging";
-          clusterBootstrap = false;
           ipv4Address = "10.0.2.52";
           ipv6Address = "2a02:168:5bab:2::52";
+        };
+        n1-vm = {
+          isVirtualMachine = true;
+          clusterTarget = "staging";
+          clusterBootstrap = true;
+          interface = "enp0s3";
+          ipv4Address = "192.168.56.101";
+          ipv4Gateway = "192.168.56.1";
+          ipv4Nameserver = "8.8.8.8";
+          ipv6Address = "fd42:42:42::101";
+        };
+
+        n2-vm = {
+          isVirtualMachine = true;
+          clusterTarget = "staging";
+          interface = "enp0s3";
+          ipv4Address = "192.168.56.102";
+          ipv4Gateway = "192.168.56.1";
+          ipv4Nameserver = "8.8.8.8";
+          ipv6Address = "fd42:42:42::102";
+        };
+
+        n3-vm = {
+          isVirtualMachine = true;
+          clusterTarget = "staging";
+          interface = "enp0s3";
+          ipv4Address = "192.168.56.103";
+          ipv4Gateway = "192.168.56.1";
+          ipv4Nameserver = "8.8.8.8";
+          ipv6Address = "fd42:42:42::103";
         };
       };
 
@@ -82,11 +110,18 @@
         interface = "enP4p65s0";
       };
 
+      hostDefaults = {
+        isFallback = false;
+        isVirtualMachine = false;
+        clusterBootstrap = false;
+      };
+
       mkHostArgs =
         hostName:
         let
-          hostConfig = hostConfigs.${hostName};
+          hostConfig = hostDefaults // hostConfigs.${hostName};
           clusterConfig = clusterConfigs.${hostConfig.clusterTarget};
+          networkConfig = networkDefaults // hostConfig;
         in
         {
           inherit
@@ -97,13 +132,15 @@
             ;
 
           inherit (hostConfig)
+            isFallback
+            isVirtualMachine
             clusterTarget
             clusterBootstrap
             ipv4Address
             ipv6Address
             ;
 
-          inherit (networkDefaults)
+          inherit (networkConfig)
             ipv4Gateway
             ipv6Gateway
             ipv4Nameserver
@@ -147,6 +184,29 @@
             ./host/n3
           ];
         };
+        n1-vm = lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = mkHostArgs "n1-vm";
+          modules = [
+            ./host/n1
+          ];
+        };
+
+        n2-vm = lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = mkHostArgs "n2-vm";
+          modules = [
+            ./host/n2
+          ];
+        };
+
+        n3-vm = lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = mkHostArgs "n3-vm";
+          modules = [
+            ./host/n3
+          ];
+        };
       };
 
       homeConfigurations = {
@@ -175,6 +235,35 @@
             ./home/vivian/n3.nix
           ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+        "vivian@n1-vm" = lib.homeManagerConfiguration {
+          modules = [
+            ./home/vivian/n1.nix
+          ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+
+        "vivian@n2-vm" = lib.homeManagerConfiguration {
+          modules = [
+            ./home/vivian/n2.nix
+          ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+
+        "vivian@n3-vm" = lib.homeManagerConfiguration {
+          modules = [
+            ./home/vivian/n3.nix
+          ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
           };
