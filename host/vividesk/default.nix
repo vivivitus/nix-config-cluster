@@ -15,6 +15,7 @@
     ./storage.nix
     ./lm_sensors.nix
     ./networking.nix
+    ./pipewire.nix
     ../common/global
     ../common/user/vivian
     ../common/optional/nix-ld.nix
