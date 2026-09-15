@@ -1,0 +1,4 @@
+# VirtualBox
+*.vdi
+*.vbox-prev
+*.vbox-tmp
