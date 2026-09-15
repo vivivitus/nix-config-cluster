@@ -8,6 +8,7 @@
   imports = [
     ./storage.nix
     (modulesPath + "/installer/scan/not-detected.nix")
+    (modulesPath + "/virtualisation/virtualbox-image.nix")
   ];
 
   boot = {
