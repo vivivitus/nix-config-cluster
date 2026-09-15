@@ -161,6 +161,14 @@
       };
 
       nixosConfigurations = {
+        iso = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            ./virtualbox/bootstrap-iso.nix
+          ];
+        };
+
         n1 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n1";
