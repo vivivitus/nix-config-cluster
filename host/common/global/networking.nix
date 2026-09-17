@@ -3,9 +3,10 @@
   hostName,
   ipv4Address,
   ipv6Address,
-  ipv4Gateway,
-  ipv4Nameserver,
+  ipv4Gateway ? null,
+  ipv4Nameserver ? null,
   interface,
+  dhcpInterface ? null,
   ipv6Gateway ? null,
   ipv6Nameserver ? null,
   ...
@@ -32,7 +33,11 @@
       ];
     };
 
-    defaultGateway = {
+    interfaces.${dhcpInterface} = lib.mkIf (dhcpInterface != null) {
+      useDHCP = true;
+    };
+
+    defaultGateway = lib.mkIf (ipv4Gateway != null) {
       address = ipv4Gateway;
       inherit interface;
     };
@@ -42,7 +47,9 @@
       inherit interface;
     };
 
-    nameservers = [ ipv4Nameserver ] ++ lib.optional (ipv6Nameserver != null) ipv6Nameserver;
+    nameservers =
+      (lib.optional (ipv4Nameserver != null) ipv4Nameserver)
+      ++ (lib.optional (ipv6Nameserver != null) ipv6Nameserver);
   };
 
   services = {

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# profiles/vbox.sh
+
+PROVIDER="vbox"
+
+HOST_IP="192.168.63.1"
+NETMASK="255.255.255.0"
+DHCP_LOWER_IP="192.168.63.200"
+DHCP_UPPER_IP="192.168.63.254"
+
+DISK_SIZE_MB=32768
+MEMORY_MB=4096
+CPUS=4
+
+VMS_NAME=(
+    "n1-vm"
+    "n2-vm"
+    "n3-vm"
+)
+
+VMS_IP=(
+    "192.168.63.101"
+    "192.168.63.102"
+    "192.168.63.103"
+)
+
+VMS_MAC=(
+    "080027000101"
+    "080027000102"
+    "080027000103"
+)
