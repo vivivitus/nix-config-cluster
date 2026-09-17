@@ -19,12 +19,10 @@
             type = "filesystem";
             format = "vfat";
             mountpoint = "/boot";
-
             extraArgs = [
               "-n"
               "BOOT"
             ];
-
             mountOptions = [
               "fmask=0077"
               "dmask=0077"
@@ -38,12 +36,10 @@
 
           content = {
             type = "btrfs";
-
             extraArgs = [
               "-L"
               "root"
             ];
-
             subvolumes = {
               "/persist" = {
                 mountpoint = "/persist";

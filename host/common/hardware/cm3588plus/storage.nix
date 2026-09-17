@@ -50,6 +50,7 @@ in
                   "noatime"
                   "nodiratime"
                 ];
+
               };
               "/home" = {
                 mountpoint = "/home";
@@ -59,6 +60,7 @@ in
                   "noatime"
                   "nodiratime"
                 ];
+
               };
               "/nix" = {
                 mountpoint = "/nix";

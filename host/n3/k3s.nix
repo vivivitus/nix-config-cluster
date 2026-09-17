@@ -3,9 +3,13 @@
   ipv4Address,
   ipv6Address,
   interface,
+  isVirtualMachine ? false,
   ...
 }:
 
+let
+  serverIp = if isVirtualMachine then allHosts.n1-vm else allHosts.n1;
+in
 {
   imports = [
     ../common/k3s
@@ -16,7 +20,7 @@
   ];
 
   services.k3s = {
-    serverAddr = "https://${allHosts.n1.ipv4Address}:6443";
+    serverAddr = "https://${serverIp.ipv4Address}:6443";
 
     extraFlags = [
       "--tls-san"

@@ -2,3 +2,5 @@
 *.vdi
 *.vbox-prev
 *.vbox-tmp
+deploy-cluster/deploy-log/
+deploy-cluster/install-image

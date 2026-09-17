@@ -1,4 +1,7 @@
 { ... }: {
+
+  boot.zfs.forceImportRoot = false;
+  networking.interfaces.enp0s3.useDHCP = true;
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "prohibit-password";
 

@@ -57,57 +57,67 @@
           clusterBootstrap = true;
           ipv4Address = "10.0.2.50";
           ipv6Address = "2a02:168:5bab:2::50";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
         };
 
         n2 = {
           clusterTarget = "staging";
           ipv4Address = "10.0.2.51";
           ipv6Address = "2a02:168:5bab:2::51";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
         };
 
         n3 = {
           clusterTarget = "staging";
           ipv4Address = "10.0.2.52";
           ipv6Address = "2a02:168:5bab:2::52";
+          ipv4Gateway = "10.0.2.1";
+          ipv6Gateway = "2a02:168:5bab:2::1";
+          ipv4Nameserver = "10.0.2.1";
+          ipv6Nameserver = "2a02:168:5bab:2::1";
         };
         n1-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
           clusterBootstrap = true;
-          interface = "enp0s3";
-          ipv4Address = "192.168.56.101";
-          ipv4Gateway = "192.168.56.1";
-          ipv4Nameserver = "8.8.8.8";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
+          ipv4Address = "192.168.63.101";
           ipv6Address = "fd42:42:42::101";
         };
 
         n2-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          interface = "enp0s3";
-          ipv4Address = "192.168.56.102";
-          ipv4Gateway = "192.168.56.1";
-          ipv4Nameserver = "8.8.8.8";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
+          ipv4Address = "192.168.63.102";
           ipv6Address = "fd42:42:42::102";
         };
 
         n3-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          interface = "enp0s3";
-          ipv4Address = "192.168.56.103";
-          ipv4Gateway = "192.168.56.1";
-          ipv4Nameserver = "8.8.8.8";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
+          ipv4Address = "192.168.63.103";
           ipv6Address = "fd42:42:42::103";
         };
       };
 
       networkDefaults = {
-        ipv4Gateway = "10.0.2.1";
-        ipv6Gateway = "2a02:168:5bab:2::1";
-        ipv4Nameserver = "10.0.2.1";
-        ipv6Nameserver = "2a02:168:5bab:2::1";
         interface = "enP4p65s0";
+        dhcpInterface = null;
+        ipv4Gateway = null;
+        ipv6Gateway = null;
+        ipv4Nameserver = null;
+        ipv6Nameserver = null;
       };
 
       hostDefaults = {
@@ -146,6 +156,7 @@
             ipv4Nameserver
             ipv6Nameserver
             interface
+            dhcpInterface
             ;
 
           allHosts = hostConfigs;
@@ -165,7 +176,7 @@
           system = "x86_64-linux";
           modules = [
             "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-            ./virtualbox/bootstrap-iso.nix
+            ./deploy-cluster/bootstrap-iso.nix
           ];
         };
 
