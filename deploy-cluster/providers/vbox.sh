@@ -46,7 +46,7 @@ vbox_init() {
     if [[ -z "$VBOX_DEFAULT_MACHINE_FOLDER" ]]; then
         echo "ERROR: Could not determine VirtualBox default machine folder." >&2
         return 1
-    }
+    fi
 
     VBOX_INITIALIZED=1
 }
