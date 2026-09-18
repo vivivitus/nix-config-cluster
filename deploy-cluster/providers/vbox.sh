@@ -23,11 +23,19 @@ vbox_init() {
 
     if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
         VBOX="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+        # Automatisches Ermitteln des Windows-Adapters, der zu WSL/Hyper-V passt
+        HOST_PHYSICAL_IFACE="${HOST_PHYSICAL_IFACE:-$(
+            "$VBOX" list bridgedifs | tr -d '\r' | awk '
+                /^Name:/ {name=$0; sub(/^Name:[[:space:]]*/, "", name)}
+                /^IPAddress:/ {ip=$0; sub(/^IPAddress:[[:space:]]*/, "", ip); if (ip ~ /^172\./) {print name; exit}}
+            '
+        )}"
     else
         VBOX="VBoxManage"
+        HOST_PHYSICAL_IFACE="${HOST_PHYSICAL_IFACE:-$(ip route show default | awk '{print $5; exit}')}"
     fi
 
-    VBOX_DEFAULT_MACHINE_FOLDER="$("$VBOX" list systemproperties | grep '^Default machine folder:' | cut -d':' -f2- | xargs)"
+    VBOX_DEFAULT_MACHINE_FOLDER="$("$VBOX" list systemproperties | grep '^Default machine folder:' | cut -d':' -f2- | tr -d '\r' | xargs)"
     if [[ -z "$VBOX_DEFAULT_MACHINE_FOLDER" ]]; then
         echo "ERROR: Could not determine VirtualBox default machine folder."
         return 1
