@@ -21,7 +21,7 @@ vbox_init() {
         return 1
     fi
 
-    if [[ -f /proc/version ]] && grep -q Microsoft /proc/version 2>/dev/null; then
+    if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
         VBOX="VBoxManage.exe"
     else
         VBOX="VBoxManage"
