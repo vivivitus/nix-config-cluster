@@ -14,7 +14,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 PROFILE_NAME="$1"
-EXTRA_FILES_DIR="$2}"
+EXTRA_FILES_DIR="$2"
 
 if ! [[ "$PROFILE_NAME" =~ ^[a-zA-Z0-9_-]+$ ]]; then
     echo "ERROR: Invalid PROFILE_NAME: must contain only letters, numbers, underscores, or hyphens"

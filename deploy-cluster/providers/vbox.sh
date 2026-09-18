@@ -48,17 +48,20 @@ setup_network() {
     HOSTONLY_IF=""
     IFACE_INFO="$("$VBOX" list hostonlyifs)"
 
-    while read -r IFACE; do
-        [[ -z "$IFACE" ]] && continue
-        IFACE_IP="$(grep -A20 "^Name:[[:space:]]*$IFACE" <<<"$IFACE_INFO" | grep '^IPAddress:' | head -n 1 | cut -d':' -f2 | xargs)"
-        if [[ "$IFACE_IP" = "$HOST_IP" ]]; then
-            HOSTONLY_IF="$IFACE"
-            break
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^Name:[[:space:]]*(.*)$ ]]; then
+            current_if="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^IPAddress:[[:space:]]*(.*)$ ]]; then
+            local ip="${BASH_REMATCH[1]}"
+            if [[ "$ip" = "$HOST_IP" ]]; then
+                HOSTONLY_IF="$current_if"
+                break
+            fi
         fi
-    done < <(echo "$IFACE_INFO" | grep '^Name:' | cut -d':' -f2 | xargs -n1)
+    done < <("$VBOX" list hostonlyifs | tr -d '\r')
 
     if [[ -z "$HOSTONLY_IF" ]]; then
-        CREATE_OUTPUT="$("$VBOX" hostonlyif create)"
+        CREATE_OUTPUT="$("$VBox" hostonlyif create | tr -d '\r')"
         HOSTONLY_IF="${CREATE_OUTPUT#Interface \'}"
         HOSTONLY_IF="${HOSTONLY_IF%%\'*}"
     fi
