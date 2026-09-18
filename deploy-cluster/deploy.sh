@@ -5,15 +5,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FLAKE_DIR="$(dirname "$SCRIPT_DIR")"
-EXTRA_FILES_DIR="/home/vivian/Documents/nixos-anywhere"
 
+# Usage anpassen
 if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <profile-name>"
-    echo "Example: $0 vbox"
+    echo "Usage: $0 <profile-name> [extra-files-dir]"
+    echo "Example: $0 vbox /path/to/my/extra-files"
     exit 1
 fi
 
 PROFILE_NAME="$1"
+EXTRA_FILES_DIR="$2}"
 
 if ! [[ "$PROFILE_NAME" =~ ^[a-zA-Z0-9_-]+$ ]]; then
     echo "ERROR: Invalid PROFILE_NAME: must contain only letters, numbers, underscores, or hyphens"
