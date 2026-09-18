@@ -133,8 +133,13 @@ create_vms() {
             "$VBOX" storagectl "$VM" --name "IDE Controller" --add ide
         fi
 
-        # ISO und Boot-Reihenfolge erzwingen
-        "$VBOX" storageattach "$VM" --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$iso_path"
+        local local_iso_path="$iso_path"
+        if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
+            local_iso_path="$(wslpath -w "$iso_path")"
+        fi
+
+        # ISO und Boot-Reihenfolge erzwingen (mit konvertiertem Pfad)
+        "$VBOX" storageattach "$VM" --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "$local_iso_path"
         "$VBOX" modifyvm "$VM" --boot1 dvd --boot2 disk
 
         # NVRAM löschen, falls vorhanden (mit || true abgesichert gegen set -e)
