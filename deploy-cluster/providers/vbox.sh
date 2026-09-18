@@ -14,12 +14,14 @@ set -euo pipefail
 : "${DHCP_LOWER_IP:?DHCP_LOWER_IP is required}"
 : "${DHCP_UPPER_IP:?DHCP_UPPER_IP is required}"
 
+# Globale Variablen für VBox-Konfiguration
+VBOX=""
+HOST_PHYSICAL_IFACE=""
+VBOX_DEFAULT_MACHINE_FOLDER=""
+
 vbox_init() {
-    HOST_PHYSICAL_IFACE="${HOST_PHYSICAL_IFACE:-$(ip route show default | awk '{print $5; exit}')}"
-    if [[ -z "$HOST_PHYSICAL_IFACE" ]]; then
-        echo "ERROR: Could not determine default physical network interface." >&2
-        return 1
-    fi
+    # Verhindert mehrfaches Ausführen
+    [[ -n "${VBOX_INITIALIZED:-}" ]] && return 0
 
     if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
         VBOX="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
@@ -35,11 +37,18 @@ vbox_init() {
         HOST_PHYSICAL_IFACE="${HOST_PHYSICAL_IFACE:-$(ip route show default | awk '{print $5; exit}')}"
     fi
 
-    VBOX_DEFAULT_MACHINE_FOLDER="$("$VBOX" list systemproperties | grep '^Default machine folder:' | cut -d':' -f2- | tr -d '\r' | xargs)"
-    if [[ -z "$VBOX_DEFAULT_MACHINE_FOLDER" ]]; then
-        echo "ERROR: Could not determine VirtualBox default machine folder."
+    if [[ -z "$HOST_PHYSICAL_IFACE" ]]; then
+        echo "ERROR: Could not determine default physical network interface." >&2
         return 1
     fi
+
+    VBOX_DEFAULT_MACHINE_FOLDER="$("$VBOX" list systemproperties | grep '^Default machine folder:' | cut -d':' -f2- | tr -d '\r' | xargs)"
+    if [[ -z "$VBOX_DEFAULT_MACHINE_FOLDER" ]]; then
+        echo "ERROR: Could not determine VirtualBox default machine folder." >&2
+        return 1
+    }
+
+    VBOX_INITIALIZED=1
 }
 
 vbox_vm_is_running() {
@@ -50,12 +59,10 @@ vbox_vm_is_running() {
 }
 
 setup_network() {
-    vbox_init
     echo "Configuring VirtualBox network..."
 
     HOSTONLY_IF=""
-    IFACE_INFO="$("$VBOX" list hostonlyifs)"
-
+    
     while IFS= read -r line; do
         if [[ "$line" =~ ^Name:[[:space:]]*(.*)$ ]]; then
             current_if="${BASH_REMATCH[1]}"
@@ -89,7 +96,6 @@ setup_network() {
 
 create_vms() {
     local iso_path="$1"
-    vbox_init
     echo "Configuring VirtualBox VMs..."
 
     for i in "${!VMS_NAME[@]}"; do
@@ -148,7 +154,6 @@ create_vms() {
 }
 
 start_vms() {
-    vbox_init
     for VM in "${VMS_NAME[@]}"; do
         if vbox_vm_is_running "$VM"; then
             echo "${VM} is already running."
@@ -160,7 +165,6 @@ start_vms() {
 }
 
 finalize_vms() {
-    vbox_init
     for VM in "${VMS_NAME[@]}"; do
         echo "Finalizing ${VM}..."
         "$VBOX" controlvm "$VM" acpipowerbutton
@@ -174,3 +178,6 @@ finalize_vms() {
         "$VBOX" startvm "$VM" --type headless
     done
 }
+
+# Einmalige Initialisierung beim Laden des Providers
+vbox_init
