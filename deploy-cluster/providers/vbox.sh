@@ -61,7 +61,7 @@ setup_network() {
     done < <("$VBOX" list hostonlyifs | tr -d '\r')
 
     if [[ -z "$HOSTONLY_IF" ]]; then
-        CREATE_OUTPUT="$("$VBox" hostonlyif create | tr -d '\r')"
+        CREATE_OUTPUT="$("$VBOX" hostonlyif create | tr -d '\r')"
         HOSTONLY_IF="${CREATE_OUTPUT#Interface \'}"
         HOSTONLY_IF="${HOSTONLY_IF%%\'*}"
     fi
