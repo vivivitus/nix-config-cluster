@@ -22,7 +22,7 @@ vbox_init() {
     fi
 
     if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
-        VBOX="VBoxManage.exe"
+        VBOX="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
     else
         VBOX="VBoxManage"
     fi
