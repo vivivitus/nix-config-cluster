@@ -228,9 +228,16 @@
 
             shellHook = ''
               export NIX_CONFIG="experimental-features = nix-command flakes"
-              export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
-              export PATH="$PATH:/mnt/c/Program Files/Oracle/VirtualBox"
-            '';
+
+              # Vagrant needs writable runtime state.
+              export VAGRANT_HOME="$PWD/.vagrant-home"
+
+              if [ -n "''${WSL_DISTRO_NAME:-}" ]; then
+                export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
+                export PATH="$PATH:/mnt/c/Program Files/Oracle/VirtualBox"
+              fi
+
+              mkdir -p "$VAGRANT_HOME"
           };
       };
 
