@@ -87,6 +87,7 @@
           ipv4Nameserver = "10.0.2.1";
           ipv6Nameserver = "2a02:168:5bab:2::1";
         };
+
         n1-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
@@ -131,12 +132,15 @@
         clusterBootstrap = false;
       };
 
+      mkHostConfig = hostName: hostDefaults // hostConfigs.${hostName};
+      mkNetworkConfig = hostConfig: networkDefaults // hostConfig;
+
       mkHostArgs =
         hostName:
         let
-          hostConfig = hostDefaults // hostConfigs.${hostName};
+          hostConfig = mkHostConfig hostName;
           clusterConfig = clusterConfigs.${hostConfig.clusterTarget};
-          networkConfig = networkDefaults // hostConfig;
+          networkConfig = mkNetworkConfig hostConfig;
         in
         {
           inherit
@@ -166,9 +170,62 @@
 
           allHosts = hostConfigs;
         };
+
+      deployTargets = lib.mapAttrs (
+        hostName: _:
+        let
+          hostConfig = mkHostConfig hostName;
+          networkConfig = mkNetworkConfig hostConfig;
+        in
+        {
+          inherit hostName;
+
+          inherit (hostConfig)
+            isVirtualMachine
+            clusterTarget
+            clusterBootstrap
+            ipv4Address
+            ipv6Address
+            ;
+
+          inherit (networkConfig)
+            ipv4Gateway
+            ipv6Gateway
+            ipv4Nameserver
+            ipv6Nameserver
+            interface
+            dhcpInterface
+            ;
+        }
+      ) hostConfigs;
     in
     {
       inherit lib;
+      inherit deployTargets;
+
+      # wäre ausgelagert wohl besser
+      devShells = {
+        x86_64-linux.default =
+          let
+            pkgs = import nixpkgs {
+              system = "x86_64-linux";
+              config = {
+                allowUnfree = true;
+              };
+            };
+          in
+          pkgs.mkShell {
+            packages = with pkgs; [
+              jq
+              vagrant
+              openssh
+              git
+            ];
+            shellHook = ''
+              export NIX_CONFIG="experimental-features = nix-command flakes"
+            '';
+          };
+      };
 
       nixosModules = import ./modules;
 
@@ -187,65 +244,49 @@
 
         vbox-vm = lib.nixosSystem {
           system = "x86_64-linux";
-
-          modules = [
-            ./deploy-cluster/vbox-vm.nix
-          ];
+          modules = [ ./deploy-cluster/vbox-vm.nix ];
         };
 
         n1 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n1";
-          modules = [
-            ./host/n1
-          ];
+          modules = [ ./host/n1 ];
         };
 
         n2 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n2";
-          modules = [
-            ./host/n2
-          ];
+          modules = [ ./host/n2 ];
         };
 
         n3 = lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = mkHostArgs "n3";
-          modules = [
-            ./host/n3
-          ];
+          modules = [ ./host/n3 ];
         };
+
         n1-vm = lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = mkHostArgs "n1-vm";
-          modules = [
-            ./host/n1
-          ];
+          modules = [ ./host/n1 ];
         };
 
         n2-vm = lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = mkHostArgs "n2-vm";
-          modules = [
-            ./host/n2
-          ];
+          modules = [ ./host/n2 ];
         };
 
         n3-vm = lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = mkHostArgs "n3-vm";
-          modules = [
-            ./host/n3
-          ];
+          modules = [ ./host/n3 ];
         };
       };
 
       homeConfigurations = {
         "vivian@n1" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n1.nix
-          ];
+          modules = [ ./home/vivian/n1.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -253,9 +294,7 @@
         };
 
         "vivian@n2" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n2.nix
-          ];
+          modules = [ ./home/vivian/n2.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -263,18 +302,15 @@
         };
 
         "vivian@n3" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n3.nix
-          ];
+          modules = [ ./home/vivian/n3.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
           };
         };
+
         "vivian@n1-vm" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n1.nix
-          ];
+          modules = [ ./home/vivian/n1.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -282,9 +318,7 @@
         };
 
         "vivian@n2-vm" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n2.nix
-          ];
+          modules = [ ./home/vivian/n2.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -292,9 +326,7 @@
         };
 
         "vivian@n3-vm" = lib.homeManagerConfiguration {
-          modules = [
-            ./home/vivian/n3.nix
-          ];
+          modules = [ ./home/vivian/n3.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
