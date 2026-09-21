@@ -1,13 +1,13 @@
-# VirtualBox
-*.vdi
-*.vbox-prev
-*.vbox-tmp
-*.box
-deploy-cluster/deploy-log/
-deploy-cluster/install-image
-deploy-cluster/extra-files/*
-!deploy-cluster/extra-files/README.md
-deploy-cluster/result
-deploy-cluster/.vagrant
-deploy-cluster/.bootstrap
+# Deployment folder exceptions
+/deploy-cluster/*
 
+!/deploy-cluster/deploy.sh
+!/deploy-cluster/deploy-nixos.sh
+!/deploy-cluster/deploy-vbox.sh
+!/deploy-cluster/Vagrantfile
+!/deploy-cluster/bootstrap-iso.nix
+!/deploy-cluster/vbox-vm.nix
+
+!/deploy-cluster/extra-files
+/deploy-cluster/extra-files/*
+!/deploy-cluster/extra-files/README.md
