@@ -1,0 +1,39 @@
+VAGRANT_SSH_PRIVATE_KEY = File.expand_path(".bootstrap/bootstrap-key", __dir__)
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "nixos-vbox"
+
+  config.ssh.username = "root"
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = VAGRANT_SSH_PRIVATE_KEY
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.allow_fstab_modification = false
+
+  nodes = {
+    "n1-vm" => "192.168.63.101",
+    "n2-vm" => "192.168.63.102",
+    "n3-vm" => "192.168.63.103"
+  }
+
+  nodes.each do |name, ip|
+    config.vm.define name do |node|
+      node.vm.network "private_network", ip: ip, auto_config: false
+
+      node.vm.provision "shell",
+        privileged: true,
+        inline: <<-SHELL
+          ip link set enp0s8 up
+          ip addr flush dev enp0s8
+          ip addr add #{ip}/24 dev enp0s8
+        SHELL
+
+      node.vm.provider "virtualbox" do |vb|
+        vb.memory = 4096
+        vb.cpus = 2
+        vb.name = name
+        vb.check_guest_additions = false
+      end
+    end
+  end
+end
