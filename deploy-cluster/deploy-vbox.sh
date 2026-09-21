@@ -4,15 +4,14 @@ set -euo pipefail
 
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-BOOTSTRAP_KEY="$(pwd)/.bootstrap/bootstrap-key"
-BOOTSTRAP_PUBLIC_KEY_FILE="$(pwd)/.bootstrap/bootstrap-key.pub"
+BOOTSTRAP_DIR=".bootstrap"
+BOOTSTRAP_KEY="${BOOTSTRAP_DIR}/bootstrap-key"
+BOOTSTRAP_PUBLIC_KEY_FILE="$(pwd)/${BOOTSTRAP_DIR}/bootstrap-key.pub"
+
+TARGETS_FILE=".deploy-targets.json"
 
 BOX_NAME="nixos-vbox"
 BOX_FILE="nixos-vbox.box"
-
-BOOTSTRAP_DIR=".bootstrap"
-KEY_FILE="${BOOTSTRAP_DIR}/bootstrap-key"
-PUBLIC_KEY_FILE="${BOOTSTRAP_DIR}/bootstrap-key.pub"
 
 WORKDIR=""
 
@@ -22,44 +21,41 @@ cleanup() {
 
 trap cleanup EXIT
 
-
-echo
-echo "========================================"
-echo " 0. Create/reuse bootstrap SSH key"
-echo "========================================"
-echo
-
-mkdir -p "${BOOTSTRAP_DIR}"
-
-if [[ ! -f "${KEY_FILE}" || ! -f "${PUBLIC_KEY_FILE}" ]]; then
-
-  echo "Creating bootstrap SSH key..."
-
-  ssh-keygen \
-    -q \
-    -t ed25519 \
-    -N "" \
-    -f "${KEY_FILE}" \
-    -C "nixos-vagrant-bootstrap"
-
-  chmod 600 "${KEY_FILE}"
-  chmod 644 "${PUBLIC_KEY_FILE}"
-
-  echo "Created:"
-  echo "  ${KEY_FILE}"
-  echo "  ${PUBLIC_KEY_FILE}"
-
-else
-
-  echo "Reusing existing bootstrap SSH key:"
-  echo "  ${KEY_FILE}"
-
+if [[ $# -ne 1 ]]; then
+  echo "Usage:"
+  echo "  $0 <host>"
+  echo "  $0 vm"
+  exit 1
 fi
 
+TARGET="$1"
+
+if [[ ! -f "${BOOTSTRAP_KEY}" || ! -f "${BOOTSTRAP_PUBLIC_KEY_FILE}" ]]; then
+  echo "ERROR: Bootstrap SSH key not found."
+  exit 1
+fi
+
+if [[ ! -f "${TARGETS_FILE}" ]]; then
+  echo "ERROR: Deployment targets not found."
+  exit 1
+fi
+
+if [[ "${TARGET}" != "vm" ]]; then
+  IS_VIRTUAL_MACHINE="$(
+    jq -r --arg host "${TARGET}" '
+      .[$host].isVirtualMachine // empty
+    ' "${TARGETS_FILE}"
+  )"
+
+  if [[ "${IS_VIRTUAL_MACHINE}" != "true" ]]; then
+    echo "ERROR: Not a virtual machine target: ${TARGET}"
+    exit 1
+  fi
+fi
 
 echo
 echo "========================================"
-echo " 1. Build VirtualBox image"
+echo " Build VirtualBox image"
 echo "========================================"
 echo
 
@@ -76,23 +72,18 @@ OVA_PATH="$(
 )"
 
 echo
-echo "OVA:"
-echo "  ${OVA_PATH}"
-
+echo "OVA: ${OVA_PATH}"
 
 echo
 echo "========================================"
-echo " 2. Create Vagrant box"
+echo " Create Vagrant box"
 echo "========================================"
 echo
 
 WORKDIR="$(mktemp -d)"
 
 echo "Extracting OVA..."
-
-tar \
-  -xf "${OVA_PATH}" \
-  -C "${WORKDIR}"
+tar -xf "${OVA_PATH}" -C "${WORKDIR}"
 
 cat > "${WORKDIR}/metadata.json" <<'EOF'
 {
@@ -127,55 +118,77 @@ echo
 echo "Created:"
 ls -lh "${BOX_FILE}"
 
-
 echo
 echo "========================================"
-echo " 3. Update Vagrant box"
+echo " Update Vagrant box"
 echo "========================================"
 echo
 
 if vagrant box list | grep -q "^${BOX_NAME} "; then
-
   echo "Removing old ${BOX_NAME}..."
 
   vagrant box remove \
     "${BOX_NAME}" \
     --all \
     --force
-
 fi
 
 vagrant box add \
   --name "${BOX_NAME}" \
   "${BOX_FILE}"
 
-
 echo
 echo "========================================"
-echo " 4. Start Vagrant cluster"
+echo " Start Vagrant environment"
 echo "========================================"
 echo
 
-vagrant destroy -f || true
+if [[ "${TARGET}" == "vm" ]]; then
+  echo "Starting all virtual machines..."
 
-echo "Starting n1-vm..."
+  hosts="$(
+    jq -r '
+      to_entries[]
+      | select(.value.isVirtualMachine == true)
+      | .key
+    ' "${TARGETS_FILE}"
+  )"
 
-vagrant up n1-vm &
-PID_N1=$!
+  if [[ -z "${hosts}" ]]; then
+    echo "ERROR: No virtual machines defined."
+    exit 1
+  fi
 
-vagrant up n2-vm &
-PID_N2=$!
+  while IFS= read -r host; do
+    echo "Destroying ${host}..."
+    vagrant destroy "${host}" -f || true
+  done <<< "${hosts}"
 
-vagrant up n3-vm &
-PID_N3=$!
+  pids=()
 
-wait "${PID_N1}"
-wait "${PID_N2}"
-wait "${PID_N3}"
+  while IFS= read -r host; do
+    echo "Starting ${host}..."
 
+    vagrant up "${host}" &
+    pids+=("$!")
+  done <<< "${hosts}"
 
-echo
-echo "========================================"
-echo " Vagrant cluster is running"
-echo "========================================"
-echo
+  status=0
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      status=1
+    fi
+  done
+
+  if [[ "${status}" -ne 0 ]]; then
+    echo "ERROR: One or more VMs failed to start."
+    exit "${status}"
+  fi
+
+else
+  echo "Starting ${TARGET}..."
+
+  vagrant destroy "${TARGET}" -f || true
+  vagrant up "${TARGET}"
+fi
