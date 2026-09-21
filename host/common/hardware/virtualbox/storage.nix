@@ -6,41 +6,29 @@
     device = "/dev/sda";
 
     content = {
-      type = "gpt";
+      type = "table";
+      format = "msdos";
 
-      partitions = {
-        ESP = {
-          priority = 1;
-          name = "ESP";
-          size = "512M";
-          type = "EF00";
-
-          content = {
-            type = "filesystem";
-            format = "vfat";
-            mountpoint = "/boot";
-            extraArgs = [
-              "-n"
-              "BOOT"
-            ];
-            mountOptions = [
-              "fmask=0077"
-              "dmask=0077"
-              "noatime"
-            ];
-          };
-        };
-
-        root = {
-          size = "100%";
+      partitions = [
+        {
+          name = "root";
+          start = "1MiB";
+          end = "100%";
+          bootable = true;
 
           content = {
             type = "btrfs";
+
             extraArgs = [
               "-L"
               "root"
             ];
+
             subvolumes = {
+              "/boot" = {
+                mountpoint = "/boot";
+              };
+
               "/persist" = {
                 mountpoint = "/persist";
                 mountOptions = [
@@ -90,8 +78,8 @@
               };
             };
           };
-        };
-      };
+        }
+      ];
     };
   };
 
