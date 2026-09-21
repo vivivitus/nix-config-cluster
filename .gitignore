@@ -5,7 +5,8 @@
 *.box
 deploy-cluster/deploy-log/
 deploy-cluster/install-image
-deploy-cluster/extra-files
+deploy-cluster/extra-files/*
+!deploy-cluster/extra-files/README.md
 deploy-cluster/result
 deploy-cluster/.vagrant
 deploy-cluster/.bootstrap
