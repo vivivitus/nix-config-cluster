@@ -213,6 +213,10 @@
                 allowUnfree = true;
               };
             };
+
+            vagrant = pkgs.vagrant.overrideAttrs (old: {
+              doInstallCheck = false;
+            });
           in
           pkgs.mkShell {
             packages = with pkgs; [
@@ -221,9 +225,11 @@
               openssh
               git
             ];
+
             shellHook = ''
               export NIX_CONFIG="experimental-features = nix-command flakes"
-              export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"
+              export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
+              export PATH="$PATH:/mnt/c/Program Files/Oracle/VirtualBox"
             '';
           };
       };
