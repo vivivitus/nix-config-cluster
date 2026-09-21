@@ -238,6 +238,7 @@
               fi
 
               mkdir -p "$VAGRANT_HOME"
+            '';
           };
       };
 
