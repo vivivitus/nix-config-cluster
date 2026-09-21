@@ -6,7 +6,7 @@ Each node is assigned a key that is used for **SSH authentication** and for **de
 
 ## Directory Structure
 
-The directory structure matches the one found on the deployed hosts. Instead of /etc/, /persist/etc/ is used here because the configuration uses [impermanence](https://github.com/nix-community/impermanence).
+The directory structure matches the one found on the deployed hosts. Instead of /etc/, /persist/etc/ is used here because the configuration uses impermanence.
 
 ```text
 deploy-cluster/extra-files/
