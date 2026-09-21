@@ -13,9 +13,9 @@
 
   boot = {
     loader = {
-      systemd-boot = {
+      grub = {
         enable = true;
-        configurationLimit = 5;
+        device = "/dev/sda";
       };
     };
 

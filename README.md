@@ -12,7 +12,7 @@ Installation
 
 nix run github:nix-community/nixos-anywhere -- --extra-files ./n1 --build-on-remote --flake github:vivivitus/nix-config-cluster#n1 root@10.0.2.50
 
-requirements:
+Installation on Windows with VirtualBox and WSL2:
 
 install VirtualBox
 download latest wsl image: (e.g. https://github.com/nix-community/NixOS-WSL/releases/download/2605.7.2/nixos.wsl)
@@ -22,10 +22,9 @@ wsl --install --from-file [nixos.wsl]
 (optional) wsl -s NixOS
 mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-echo 'alias VBoxManage.exe="/mnt/c/Program\ Files/Oracle/VirtualBox/VBoxManage.exe"' >> ~/.bashrc
-source ~/.bashrc
 change into home or whatever folder you want: cd ~
 nix shell nixpkgs#git -c git clone https://github.com/vivivitus/nix-config-cluster.git
+./nix-config-cluster/deploy-cluster/deploy.sh vbox extra-files/
 
 
 virtualbox
