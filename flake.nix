@@ -223,6 +223,7 @@
             ];
             shellHook = ''
               export NIX_CONFIG="experimental-features = nix-command flakes"
+              export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"
             '';
           };
       };
