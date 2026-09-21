@@ -22,6 +22,11 @@
       url = "github:nix-community/impermanence";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -177,6 +182,14 @@
           modules = [
             "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             ./deploy-cluster/bootstrap-iso.nix
+          ];
+        };
+
+        vbox-vm = lib.nixosSystem {
+          system = "x86_64-linux";
+
+          modules = [
+            ./deploy-cluster/vbox-vm.nix
           ];
         };
 
