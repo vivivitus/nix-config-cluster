@@ -1,8 +1,8 @@
-{ nixpkgs }:
+{ nixpkgs, system }:
 
 let
   pkgs = import nixpkgs {
-    system = "x86_64-linux";
+    inherit system;
 
     config = {
       allowUnfree = true;
@@ -12,13 +12,14 @@ let
   vagrant = pkgs.vagrant.overrideAttrs (old: {
     doInstallCheck = false;
 
-    postPatch = (old.postPatch or "") + ''
-      substituteInPlace lib/ruby/gems/3.4.0/gems/vagrant-2.4.9/lib/vagrant/plugin/manager.rb \
+    postInstall = (old.postInstall or "") + ''
+      substituteInPlace "$out/lib/ruby/gems/3.4.0/gems/vagrant-2.4.9/lib/vagrant/plugin/manager.rb" \
         --replace-fail \
-          "dir = '${placeholder "out"}/vagrant-plugins'" \
+          "dir = '$out/vagrant-plugins'" \
           'dir = ENV["VAGRANT_PLUGIN_DIR"]'
     '';
   });
+
 in
 
 pkgs.mkShell {
