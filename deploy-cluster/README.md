@@ -52,12 +52,15 @@ Enter the repository:
     cd nix-config-cluster
 
 
-
 ### 4. Deploy the VirtualBox test environment
 
 The repository provides a development shell containing the required tools.
 
     nix develop
+
+Add your host keys to extra-files (see [Host key provisioning](./extra-files/README.md))
+
+    cp [path to host key directories] ./deploy/cluster/extra-files
 
 To deploy all three test VMs:
 
