@@ -1,10 +1,6 @@
 { pkgs, ... }: {
 
   programs = {
-    bash = {
-      enable = true;
-      initExtra = "cd $HOME/nix-config-cluster";
-    };
     k9s = {
       enable = true;
     };
@@ -18,6 +14,5 @@
     age
     sops
     lm_sensors
-    vulnix
   ];
 }

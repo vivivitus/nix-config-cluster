@@ -8,8 +8,6 @@
 {
   imports = [
     ./cli.nix
-    ./git.nix
-    ./vscode.nix
   ];
 
   # kube config, so kubectl can be used local
