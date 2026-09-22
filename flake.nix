@@ -269,7 +269,7 @@
 
       homeConfigurations = {
         "vivian@n1" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n1.nix ];
+          modules = [ ./home/user/vivian/n1.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -277,7 +277,7 @@
         };
 
         "vivian@n2" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n2.nix ];
+          modules = [ ./home/user/vivian/n2.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -285,7 +285,7 @@
         };
 
         "vivian@n3" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n3.nix ];
+          modules = [ ./home/user/vivian/n3.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -293,7 +293,7 @@
         };
 
         "vivian@n1-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n1.nix ];
+          modules = [ ./home/user/vivian/n1.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -301,7 +301,7 @@
         };
 
         "vivian@n2-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n2.nix ];
+          modules = [ ./home/user/vivian/n2.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -309,7 +309,30 @@
         };
 
         "vivian@n3-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/vivian/n3.nix ];
+          modules = [ ./home/user/vivian/n3.nix ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+        "alex@n1-vm" = lib.homeManagerConfiguration {
+          modules = [ ./home/user/alex/n1.nix ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+
+        "alex@n2-vm" = lib.homeManagerConfiguration {
+          modules = [ ./home/user/alex/n2.nix ];
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          extraSpecialArgs = {
+            inherit inputs outputs;
+          };
+        };
+
+        "alex@n3-vm" = lib.homeManagerConfiguration {
+          modules = [ ./home/user/alex/n3.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
