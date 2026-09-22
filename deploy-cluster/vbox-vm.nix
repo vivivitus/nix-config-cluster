@@ -22,6 +22,14 @@ in
   virtualisation.diskSize = 16384;
   virtualisation.virtualbox.guest.enable = true;
 
+  boot.initrd.systemd = {
+    enable = true;
+
+    services."dev-disk-by\\x2dlabel-nixos.device".unitConfig = {
+      JobRunningTimeoutSec = "300s";
+    };
+  };
+
   networking.hostName = "vagrant-nixos";
 
   environment.systemPackages = with pkgs; [
