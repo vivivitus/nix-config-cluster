@@ -164,14 +164,27 @@ if [[ "${TARGET}" == "vm" ]]; then
     vagrant destroy "${host}" -f || true
   done <<< "${hosts}"
 
+  pids=()
+
   while IFS= read -r host; do
     echo "Starting ${host}..."
 
-    if ! vagrant up "${host}"; then
-      echo "ERROR: Failed to start ${host}."
-      exit 1
-    fi
+    vagrant up "${host}" &
+    pids+=("$!")
   done <<< "${hosts}"
+
+  status=0
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      status=1
+    fi
+  done
+
+  if [[ "${status}" -ne 0 ]]; then
+    echo "ERROR: One or more VMs failed to start."
+    exit "${status}"
+  fi
 
 else
   echo "Starting ${TARGET}..."
