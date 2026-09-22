@@ -12,61 +12,60 @@ The following tools are required:
 * `vagrant`
 * VirtualBox
 
-## List deployment targets
+## Windows / WSL2 Setup
 
-Deployment targets are generated directly from the Nix flake:
+This guide explains how to set up the NixOS deployment environment on Windows using WSL2 and VirtualBox.
 
-```text
-./deploy.sh targets
-```
+### 1. Install VirtualBox
 
-This creates `.deploy-targets.json`.
+Install the latest version of VirtualBox on Windows.
 
-## Deploy physical hosts
+### 2. Install NixOS on WSL2
 
-Deploy a single host:
+Download the latest NixOS-WSL image from:
+https://github.com/nix-community/NixOS-WSL/releases
 
-```text
-./deploy.sh deploy n1
-```
+Update WSL:
 
-The same applies to `n2` and `n3`.
+    wsl --update
 
-## Deploy a single VM
+Install the NixOS WSL distribution:
 
-A single VM is automatically prepared and then deployed with NixOS:
+    wsl --install --from-file [nixos.wsl]
 
-```text
-./deploy.sh deploy n1-vm
-```
+Start NixOS:
 
-The same applies to `n2-vm` and `n3-vm`.
+    wsl -d NixOS
 
-## Deploy the complete VM stack
+### 3. Clone the repository
 
-All VMs defined in `deployTargets` are started and then deployed in parallel:
+Inside the NixOS WSL environment:
 
-```text
-./deploy.sh deploy vm
-```
+    cd ~
 
-## Prepare VMs only
+Clone the repository:
 
-`deploy-vbox.sh` can also be used directly.
+    nix shell nixpkgs#git -c git clone https://github.com/vivivitus/nix-config-cluster.git
 
-Prepare and start a single VM:
+Enter the repository:
 
-```text
-./deploy-vbox.sh n1-vm
-```
+    cd nix-config-cluster
 
-Prepare and start all VMs:
 
-```text
-./deploy-vbox.sh vm
-```
 
-The script builds the VirtualBox image, creates the Vagrant box, and starts the requested VMs.
+### 4. Deploy the VirtualBox test environment
+
+The repository provides a development shell containing the required tools.
+
+    nix develop
+
+To deploy all three test VMs:
+
+    ./deploy-cluster/deploy.sh deploy vm
+
+You can also deploy an individual VM:
+
+    ./deploy-cluster/deploy.sh deploy n1-vm
 
 ## Deploy directly with `deploy-nixos.sh`
 
@@ -112,13 +111,4 @@ NixOS deployment logs are stored in:
 
 ```text
 deploy-log/
-```
-
-For example:
-
-```text
-deploy-log/n1.log
-deploy-log/n1-vm.log
-deploy-log/n2-vm.log
-deploy-log/n3-vm.log
 ```
