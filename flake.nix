@@ -203,22 +203,12 @@
       inherit lib;
       inherit deployTargets;
 
-      devShells =
-        lib.genAttrs
-          [
-            "x86_64-linux"
-            "aarch64-linux"
-            "x86_64-darwin"
-            "aarch64-darwin"
-          ]
-          (
-            system:
-            import ./shell.nix {
-              pkgs = import nixpkgs {
-                inherit system;
-              };
-            }
-          );
+      devShells = {
+        x86_64-linux.default = import ./shell.nix {
+          inherit nixpkgs;
+          system = "x86_64-linux";
+        };
+      };
 
       nixosModules = import ./modules;
 
