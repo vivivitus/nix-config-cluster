@@ -17,10 +17,16 @@ let
       '';
 in
 {
-
   virtualisation.vmVariant.virtualisation.memorySize = 3072;
   virtualisation.diskSize = 16384;
   virtualisation.virtualbox.guest.enable = true;
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 2048;
+    }
+  ];
 
   boot.initrd.systemd = {
     enable = true;
