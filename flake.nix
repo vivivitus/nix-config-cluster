@@ -203,44 +203,22 @@
       inherit lib;
       inherit deployTargets;
 
-      # wäre ausgelagert wohl besser
-      devShells = {
-        x86_64-linux.default =
-          let
-            pkgs = import nixpkgs {
-              system = "x86_64-linux";
-              config = {
-                allowUnfree = true;
+      devShells =
+        lib.genAttrs
+          [
+            "x86_64-linux"
+            "aarch64-linux"
+            "x86_64-darwin"
+            "aarch64-darwin"
+          ]
+          (
+            system:
+            import ./shell.nix {
+              pkgs = import nixpkgs {
+                inherit system;
               };
-            };
-
-            vagrant = pkgs.vagrant.overrideAttrs (old: {
-              doInstallCheck = false;
-            });
-          in
-          pkgs.mkShell {
-            packages = with pkgs; [
-              jq
-              vagrant
-              openssh
-              git
-            ];
-
-            shellHook = ''
-              export NIX_CONFIG="experimental-features = nix-command flakes"
-
-              # Vagrant needs writable runtime state.
-              export VAGRANT_HOME="$PWD/.vagrant-home"
-
-              if [ -n "''${WSL_DISTRO_NAME:-}" ]; then
-                export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
-                export PATH="$PATH:/mnt/c/Program Files/Oracle/VirtualBox"
-              fi
-
-              mkdir -p "$VAGRANT_HOME"
-            '';
-          };
-      };
+            }
+          );
 
       nixosModules = import ./modules;
 
