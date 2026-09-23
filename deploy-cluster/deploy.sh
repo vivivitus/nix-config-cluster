@@ -165,8 +165,18 @@ deploy() {
 clean() {
   echo "Cleaning deployment state..."
 
-  rm -rf "${BOOTSTRAP_DIR}"
-  rm -f "${TARGETS_FILE}"
+  if [[ -d ".vagrant" ]]; then
+    echo "Destroying Vagrant machines..."
+    vagrant destroy -f || true
+  fi
+
+  rm -rf \
+    "${BOOTSTRAP_DIR}" \
+    "${TARGETS_FILE}" \
+    "deploy-log" \
+    "nixos-vbox.box" \
+    "result" \
+    ".vagrant"
 
   echo "Deployment state cleaned."
 }
