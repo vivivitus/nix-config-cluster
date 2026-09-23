@@ -11,3 +11,5 @@
 !/deploy-cluster/extra-files
 /deploy-cluster/extra-files/*
 !/deploy-cluster/extra-files/README.md
+
+*.backup

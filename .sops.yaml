@@ -20,5 +20,3 @@ creation_rules:
         - *n1
         - *n2
         - *n3
-
-# nix run nixpkgs#sops -- secrets/secret.yaml
