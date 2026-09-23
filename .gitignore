@@ -1,6 +1,7 @@
 # Deployment folder exceptions
 /deploy-cluster/*
 
+!/deploy-cluster/bridge-interface.sh
 !/deploy-cluster/deploy.sh
 !/deploy-cluster/deploy-nixos.sh
 !/deploy-cluster/deploy-vbox.sh

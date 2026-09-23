@@ -60,7 +60,7 @@
 
       hostConfigs = {
         n1 = {
-          clusterTarget = "staging";
+          clusterTarget = "prod";
           clusterBootstrap = true;
           ipv4Address = "10.0.2.50";
           ipv6Address = "2a02:168:5bab:2::50";
@@ -71,7 +71,7 @@
         };
 
         n2 = {
-          clusterTarget = "staging";
+          clusterTarget = "prod";
           ipv4Address = "10.0.2.51";
           ipv6Address = "2a02:168:5bab:2::51";
           ipv4Gateway = "10.0.2.1";
@@ -81,7 +81,7 @@
         };
 
         n3 = {
-          clusterTarget = "staging";
+          clusterTarget = "prod";
           ipv4Address = "10.0.2.52";
           ipv6Address = "2a02:168:5bab:2::52";
           ipv4Gateway = "10.0.2.1";
@@ -94,8 +94,8 @@
           isVirtualMachine = true;
           clusterTarget = "staging";
           clusterBootstrap = true;
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
+          dhcpInterface = "enp0s8";
+          interface = "enp0s9";
           ipv4Address = "192.168.63.101";
           ipv6Address = "fd42:42:42::101";
         };
@@ -103,8 +103,8 @@
         n2-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
+          dhcpInterface = "enp0s8";
+          interface = "enp0s9";
           ipv4Address = "192.168.63.102";
           ipv6Address = "fd42:42:42::102";
         };
@@ -112,8 +112,8 @@
         n3-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
+          dhcpInterface = "enp0s8";
+          interface = "enp0s9";
           ipv4Address = "192.168.63.103";
           ipv6Address = "fd42:42:42::103";
         };
