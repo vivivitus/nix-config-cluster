@@ -110,6 +110,11 @@ in
 
   swapDevices = [ ];
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 25;
+  };
+
   services.btrfs.autoScrub.enable = true;
   services.fstrim = {
     enable = true;
