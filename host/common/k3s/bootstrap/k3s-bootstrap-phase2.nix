@@ -70,8 +70,7 @@ in
 
       kubectl create secret generic glab-pat-the-cluster \
         --namespace argocd \
-        --from-literal=username="oauth2" \
-        --from-file=password="${argocdTokenPath}" \
+        --from-file=sshPrivateKey="${deployKeyPath}" \
         --from-literal=url="${clusterConfig.gitRepository}" \
         --dry-run=client \
         -o yaml \
