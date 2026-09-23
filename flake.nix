@@ -45,12 +45,14 @@
       clusterConfigs = {
         prod = {
           gitRepository = "git@gitlab.com:kubernarnold/the-cluster.git";
+          argocdGitRepository = "https://gitlab.com/kubernarnold/the-cluster.git";
           gitBranch = "main";
           bootstrapRootApp = "root-app-prod.yaml";
         };
 
         staging = {
           gitRepository = "git@gitlab.com:kubernarnold/the-cluster.git";
+          argocdGitRepository = "https://gitlab.com/kubernarnold/the-cluster.git";
           gitBranch = "developing-config";
           bootstrapRootApp = "root-app-staging.yaml";
         };
