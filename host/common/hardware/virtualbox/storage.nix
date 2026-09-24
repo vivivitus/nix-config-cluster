@@ -4,21 +4,24 @@
   disko.devices.disk.virtualbox = {
     type = "disk";
     device = "/dev/sda";
+    imageSize = "16G";
 
     content = {
-      type = "table";
-      format = "msdos";
+      type = "gpt";
 
-      partitions = [
-        {
-          name = "root";
-          start = "1MiB";
-          end = "100%";
-          bootable = true;
+      partitions = {
+        bios = {
+          size = "1M";
+          type = "EF02";
+          priority = 1;
+        };
+
+        root = {
+          size = "100%";
+          priority = 2;
 
           content = {
             type = "btrfs";
-
             extraArgs = [
               "-L"
               "root"
@@ -78,8 +81,8 @@
               };
             };
           };
-        }
-      ];
+        };
+      };
     };
   };
 
