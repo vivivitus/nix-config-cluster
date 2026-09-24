@@ -111,6 +111,32 @@ The complete `nixos-anywhere` output is redirected to the corresponding log file
 
 This guide explains how to set up the NixOS deployment environment on Windows using WSL2 and VirtualBox.
 
+### Windows Firewall
+
+When running Vagrant inside WSL2 with VirtualBox on Windows, the Windows Firewall may block the SSH forwarding port used by Vagrant. If the Windows Firewall is enabled, allow TCP port `2200` from the WSL2 network:
+
+Run the following command in **PowerShell as Administrator**:
+
+```powershell
+New-NetFirewallRule `
+    -DisplayName "Vagrant SSH from WSL" `
+    -Description "Allow Vagrant SSH forwarding from WSL2" `
+    -Direction Inbound `
+    -Action Allow `
+    -Protocol TCP `
+    -LocalAddress 172.23.240.1 `
+    -LocalPort 2200 `
+    -RemoteAddress 172.23.240.0/20 `
+    -Profile Any
+```
+
+Alternatively, the Windows Firewall can be temporarily disabled while using Vagrant.
+
+The exact WSL2 subnet and adapter address may vary between systems. For example, the required rule can be created in PowerShell as Administrator using the current addresses of the vEthernet (WSL) adapter:
+
+    Get-NetIPAddress -InterfaceAlias "vEthernet (WSL)" -AddressFamily IPv4
+
+
 ### Requirements
 
 Install the [latest version of VirtualBox](https://www.virtualbox.org/wiki/Downloads) on Windows.
