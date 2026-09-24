@@ -8,8 +8,11 @@
   imports = [
     ./storage.nix
     (modulesPath + "/installer/scan/not-detected.nix")
-    (modulesPath + "/virtualisation/virtualbox-image.nix")
+    #(modulesPath + "/virtualisation/virtualbox-image.nix")
   ];
+
+  virtualisation.vmVariant.virtualisation.memorySize = 3072;
+  virtualisation.diskSize = 10000;
 
   boot = {
     loader = {
