@@ -8,10 +8,6 @@ ROOT_DIR="$(cd .. && pwd)"
 
 TARGETS_FILE=".deploy-targets.json"
 
-BOOTSTRAP_DIR=".bootstrap"
-BOOTSTRAP_KEY="${BOOTSTRAP_DIR}/bootstrap-key"
-BOOTSTRAP_PUBLIC_KEY="${BOOTSTRAP_DIR}/bootstrap-key.pub"
-
 
 # ========================================
 # Deployment targets
@@ -25,33 +21,6 @@ generate_targets() {
     > "${TARGETS_FILE}"
 
   echo "Generated ${TARGETS_FILE}"
-}
-
-
-# ========================================
-# Bootstrap SSH key
-# ========================================
-
-ensure_bootstrap_key() {
-  mkdir -p "${BOOTSTRAP_DIR}"
-
-  if [[ -f "${BOOTSTRAP_KEY}" && -f "${BOOTSTRAP_PUBLIC_KEY}" ]]; then
-    echo "Reusing existing bootstrap SSH key:"
-    echo "  ${BOOTSTRAP_KEY}"
-    return
-  fi
-
-  echo "Creating bootstrap SSH key..."
-
-  ssh-keygen \
-    -q \
-    -t ed25519 \
-    -N "" \
-    -f "${BOOTSTRAP_KEY}" \
-    -C "nixos-vagrant-bootstrap"
-
-  chmod 600 "${BOOTSTRAP_KEY}"
-  chmod 644 "${BOOTSTRAP_PUBLIC_KEY}"
 }
 
 
@@ -90,11 +59,6 @@ deploy_host() {
   ./deploy-nixos.sh "${host}" "${ip}"
 }
 
-
-# ========================================
-# Deploy complete VM stack
-# ========================================
-
 deploy_vm_stack() {
   local hosts
 
@@ -111,46 +75,33 @@ deploy_vm_stack() {
     exit 1
   fi
 
+  echo
+  echo "========================================"
+  echo " Building and deploying VM stack"
+  echo "========================================"
+  echo
+
+  # deploy-vbox.sh handles the complete VM lifecycle:
+  #
+  #   1. Build all Disko images in parallel
+  #   2. If all builds succeed:
+  #      - remove existing VMs
+  #      - create new VMs
+  #      - start all VMs
+  #
+  # If any image build fails, existing VMs are left untouched.
   ./deploy-vbox.sh vm
 
-  local -a pids=()
-  local host
-
-  while IFS= read -r host; do
-    deploy_host "${host}" false &
-    pids+=("$!")
-  done <<< "${hosts}"
-
-  local status=0
-
   echo
   echo "========================================"
-  echo " Waiting for deployments"
+  echo " VM deployment completed"
   echo "========================================"
-  echo
-
-  for pid in "${pids[@]}"; do
-    if ! wait "${pid}"; then
-      status=1
-    fi
-  done
-
-  echo
-
-  if [[ "${status}" -eq 0 ]]; then
-    echo "========================================"
-    echo " Deployment completed"
-    echo "========================================"
-  else
-    echo "========================================"
-    echo " Deployment failed"
-    echo "========================================"
-  fi
-
-  echo
-
-  return "${status}"
 }
+
+
+# ========================================
+# Deploy
+# ========================================
 
 deploy() {
   local target="$1"
@@ -162,24 +113,26 @@ deploy() {
   fi
 }
 
+
+# ========================================
+# Clean
+# ========================================
+
 clean() {
   echo "Cleaning deployment state..."
 
-  if [[ -d ".vagrant" ]]; then
-    echo "Destroying Vagrant machines..."
-    vagrant destroy -f || true
-  fi
-
   rm -rf \
-    "${BOOTSTRAP_DIR}" \
     "${TARGETS_FILE}" \
     "deploy-log" \
-    "nixos-vbox.box" \
-    "result" \
-    ".vagrant"
+    "result"
 
   echo "Deployment state cleaned."
 }
+
+
+# ========================================
+# Main
+# ========================================
 
 case "${1:-}" in
   targets)
@@ -194,7 +147,6 @@ case "${1:-}" in
       exit 1
     fi
 
-    ensure_bootstrap_key
     generate_targets
     deploy "$2"
     ;;

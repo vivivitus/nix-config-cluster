@@ -86,8 +86,6 @@ build_image() {
   local ssh_key_priv="${host_extra_files_dir}/persist/etc/ssh/ssh_host_ed25519_key"
   local ssh_key_pub="${host_extra_files_dir}/persist/etc/ssh/ssh_host_ed25519_key.pub"
 
-  mkdir -p "${build_dir}"
-
   if [[ ! -f "${ssh_key_priv}" ]]; then
     echo "ERROR: SSH private host key not found:"
     echo "  ${ssh_key_priv}"
@@ -113,6 +111,7 @@ build_image() {
   nix build \
     "${REPO_ROOT}#nixosConfigurations.${host}.config.system.build.diskoImagesScript" \
     --out-link "${build_dir}/result"
+
   (
     cd "${build_dir}"
 
@@ -146,8 +145,12 @@ build_image() {
 declare -A BUILD_PIDS
 
 for host in "${HOSTS[@]}"; do
-  echo "Building $host... Log: ${SCRIPT_DIR}/build-${host}/build.log"
-  build_image "${host}" >"${SCRIPT_DIR}/build-${host}/build.log" 2>&1 &
+  build_dir="${SCRIPT_DIR}/build-${host}"
+  mkdir -p "${build_dir}"
+
+  echo "Building ${host}... Log: ${build_dir}/build.log"
+
+  build_image "${host}" >"${build_dir}/build.log" 2>&1 &
   BUILD_PIDS["${host}"]=$!
 done
 
@@ -158,9 +161,10 @@ for host in "${HOSTS[@]}"; do
 
   if wait "${pid}"; then
     echo
-    echo "BUILD OK: $host"
+    echo "BUILD OK: ${host}"
   else
-    echo "BUILD FAILED: $host"
+    echo "BUILD FAILED: ${host}"
+    echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
     BUILD_FAILED=1
   fi
 done
@@ -198,7 +202,6 @@ for host in "${HOSTS[@]}"; do
     echo "No registered VM found."
   fi
 
-  # VirtualBox can leave the VM directory behind after unregistering.
   VM_DIR="${HOME}/VirtualBox VMs/${host}"
 
   if [[ -d "${VM_DIR}" ]]; then
