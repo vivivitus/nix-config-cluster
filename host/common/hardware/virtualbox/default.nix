@@ -22,6 +22,7 @@
       };
     };
 
+    kernelModules = [ "btrfs" ];
     kernelPackages = pkgs.linuxPackages_latest;
   };
 }
