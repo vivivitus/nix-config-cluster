@@ -1,0 +1,9 @@
+--- a/lib/make-disk-image.nix
++++ b/lib/make-disk-image.nix
+@@ -293,6 +293,7 @@
+     QEMU_OPTS=${lib.escapeShellArg QEMU_OPTS}
+     # replace quoted $out with the actual path
+     QEMU_OPTS=''${QEMU_OPTS//\$out/$out}
++    QEMU_OPTS+=" -machine accel=tcg"
+     QEMU_OPTS+=" -m $build_memory -object memory-backend-memfd,id=mem,size=''${build_memory}M,share=on -machine memory-backend=mem"
+     export QEMU_OPTS
