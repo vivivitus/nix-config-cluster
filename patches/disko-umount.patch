@@ -1,0 +1,9 @@
+--- a/lib/make-disk-image.nix
++++ b/lib/make-disk-image.nix
+@@ -168,5 +168,5 @@
+     xargs -P "$P" -I {} cp --recursive {} "$rootMountPoint"/nix/store < ${closureInfo}/store-paths
+ 
+     ${systemToInstall.config.system.build.nixos-install}/bin/nixos-install --root "$rootMountPoint" --system ${systemToInstall.config.system.build.toplevel} --keep-going --no-channel-copy -v --no-root-password --option binary-caches ""
+-    umount -Rv "$rootMountPoint"
++    umount -Rv "$rootMountPoint" || true
+   '';

@@ -2,6 +2,7 @@
   lib,
   inputs,
   outputs,
+  diskoModule,
   ...
 }:
 
@@ -9,7 +10,8 @@
   imports = [
     inputs.home-manager.nixosModules.home-manager
     inputs.sops-nix.nixosModules.sops
-    inputs.disko.nixosModules.disko
+    # inputs.disko.nixosModules.disko
+    diskoModule
     inputs.impermanence.nixosModules.impermanence
     ./impermanence.nix
     ./networking.nix
