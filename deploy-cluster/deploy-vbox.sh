@@ -160,7 +160,6 @@ for host in "${HOSTS[@]}"; do
     echo
     echo "BUILD OK: $host"
   else
-    echo
     echo "BUILD FAILED: $host"
     BUILD_FAILED=1
   fi
