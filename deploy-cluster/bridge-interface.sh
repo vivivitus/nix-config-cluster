@@ -2,64 +2,68 @@
 
 set -euo pipefail
 
-if grep -qi microsoft /proc/version 2>/dev/null; then
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-  VBOXMANAGE="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+# shellcheck source=vbox-lib.sh
+source "${SCRIPT_DIR}/vbox-lib.sh"
+
+if ((VBOX_ON_WINDOWS)); then
+
+  vbox_require
 
   interface_ip="$(
-  route.exe print 0.0.0.0 |
-  tr -d '\r' |
-  awk '
-  /^ *0\.0\.0\.0 +0\.0\.0\.0/ {
-    print $4
-    exit
-  }
-  '
+    route.exe print 0.0.0.0 |
+      tr -d '\r' |
+      awk '
+        /^ *0\.0\.0\.0 +0\.0\.0\.0/ {
+          if (ip == "") {
+            ip = $4
+          }
+        }
+
+        END {
+          if (ip != "") {
+            print ip
+          }
+        }
+      '
   )"
 
-  [ -n "$interface_ip" ] ||
-  abort "Could not determine Windows default-route interface IP"
-
-  bridge_interface="$(
-  "$VBOXMANAGE" list bridgedifs |
-  tr -d '\r' |
-  awk -v ip="$interface_ip" '
-  /^Name:/ {
-    name = $0
-    sub(/^[^:]*:[[:space:]]*/, "", name)
-  }
-
-  /^IPAddress:/ {
-    address = $0
-    sub(/^[^:]*:[[:space:]]*/, "", address)
-
-    if (address == ip) {
-      print name
-      exit
-    }
-  }
-  '
-  )"
-
-  [ -n "$bridge_interface" ] ||
-  {
-    echo "Could not find VirtualBox bridged interface for IP $interface_ip" >&2
+  if [[ -z "${interface_ip}" ]]; then
+    echo "ERROR: Could not determine the Windows default-route interface IP." >&2
     exit 1
-  }
+  fi
 
-  printf '%s\n' "$bridge_interface"
+  bridge_interface="$(vbox_if_name_by_ip bridgedifs "${interface_ip}")"
+  error="No VirtualBox bridged interface for IP ${interface_ip}."
 
 else
 
-  ip -4 route show default |
-  awk '
-  /default/ {
-    for (i = 1; i <= NF; i++)
-    if ($i == "dev") {
-      print $(i+1)
-      exit
-    }
-  }
-  '
+  bridge_interface="$(
+    ip -4 route show default |
+      awk '
+        /default/ {
+          for (i = 1; i <= NF; i++) {
+            if ($i == "dev" && dev == "") {
+              dev = $(i + 1)
+            }
+          }
+        }
+
+        END {
+          if (dev != "") {
+            print dev
+          }
+        }
+      '
+  )"
+  error="Could not determine the default-route interface."
 
 fi
+
+if [[ -z "${bridge_interface}" ]]; then
+  echo "ERROR: ${error}" >&2
+  exit 1
+fi
+
+printf '%s\n' "${bridge_interface}"
