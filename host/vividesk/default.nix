@@ -12,6 +12,7 @@
 
     (modulesPath + "/installer/scan/not-detected.nix")
 
+    #./ddcci.nix
     ./storage.nix
     ./lm_sensors.nix
     ./networking.nix
@@ -28,6 +29,7 @@
     ../common/virtualisation/libvirt.nix
     ../common/virtualisation/bottles.nix
     ../common/virtualisation/virtualbox.nix
+    ../common/virtualisation/vagrant.nix
   ];
 
   services.fwupd.enable = true;

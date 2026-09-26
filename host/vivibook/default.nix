@@ -18,6 +18,7 @@
     #../common/optional/network-diag.nix
     ../common/optional/steam.nix
     ../common/virtualisation/libvirt.nix
+    ../common/virtualisation/virtualbox.nix
 
   ];
 

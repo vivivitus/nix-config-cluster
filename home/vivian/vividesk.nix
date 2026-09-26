@@ -12,6 +12,7 @@
 
   programs.ssh.settings."github.com".IdentityFile = "/home/vivian/.ssh/vivian@vividesk";
 
+  # 1. Native PipeWire-Kombination der beiden HDMI-Subdevices
   xdg.configFile."pipewire/pipewire.conf.d/99-hdmi-subdevices.conf".text = ''
     context.objects = [
       {
@@ -19,7 +20,7 @@
         args = {
           factory.name   = api.alsa.pcm.sink
           node.name      = "hdmi_monitor_left"
-          node.description = "Monitor Links"
+          node.description = "Monitor Links (HDMI 0)"
           media.class    = Audio/Sink
           api.alsa.path  = "hw:0,3"
           audio.position = [ FL FR ]
@@ -30,7 +31,8 @@
         args = {
           factory.name   = api.alsa.pcm.sink
           node.name      = "hdmi_monitor_right"
-          node.description = "Monitor Rechts"
+          node.description = "Monitor Rechts (HDMI 1)"
+          media.class    = Audio/Sink
           api.alsa.path  = "hw:0,7"
           audio.position = [ FL FR ]
         }
@@ -43,21 +45,32 @@
         args = {
           combine.mode = "sink"
           node.name = "split_master_sink"
-          node.description = "Beide Monitore"
+          node.description = "Beide Monitore (Kombiniert)"
           combine.latency-compensate = true
-          audio.position = [ "FL" "FR" ]
-          stream.properties = {
-            node.passive = true
+          combine.props = {
+            audio.position = [ FL FR ]
+            media.class = "Audio/Sink"
           }
-          outputs = [
-            "hdmi_monitor_left"
-            "hdmi_monitor_right"
+          stream.props = {
+            stream.dont-remix = true
+          }
+          stream.rules = [
+            {
+              matches = [
+                { node.name = "hdmi_monitor_left" }
+                { node.name = "hdmi_monitor_right" }
+              ]
+              actions = {
+                create-stream = {}
+              }
+            }
           ]
         }
       }
     ]
   '';
 
+  # 2. Automatische AMD-Grafikkarte in WirePlumber deaktivieren
   xdg.configFile."wireplumber/wireplumber.conf.d/51-disable-navi-hdmi.conf".text = ''
     monitor.alsa.rules = [
       {
