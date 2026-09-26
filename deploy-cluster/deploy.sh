@@ -8,6 +8,9 @@ ROOT_DIR="$(cd .. && pwd)"
 
 TARGETS_FILE=".deploy-targets.json"
 
+# shellcheck source=common.sh
+source ./common.sh
+
 
 # ========================================
 # Deployment targets
@@ -94,7 +97,7 @@ deploy_vm_stack() {
 
   echo
   echo "========================================"
-  echo " VM deployment completed"
+  echo " VM deployment completed in $(format_duration "${SECONDS}")"
   echo "========================================"
 }
 

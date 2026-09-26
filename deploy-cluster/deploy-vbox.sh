@@ -17,16 +17,10 @@ HOSTONLY_INTERFACE=""
 # shellcheck source=vbox-lib.sh
 source "${SCRIPT_DIR}/vbox-lib.sh"
 
+# shellcheck source=common.sh
+source "${SCRIPT_DIR}/common.sh"
+
 vbox_require
-
-# Prefix each line with an ISO 8601 timestamp.
-timestamp_lines() {
-  local line
-
-  while IFS= read -r line || [[ -n "${line}" ]]; do
-    printf '%(%Y-%m-%dT%H:%M:%S%z)T %s\n' -1 "${line}"
-  done
-}
 
 # Path of the raw image in <build dir>, or failure if there is none.
 find_raw_image() {
@@ -271,6 +265,8 @@ else
   echo "Disk image directory:      per-host build directory"
 fi
 
+phase_mark setup
+
 
 # ============================================================
 # Build Disko images
@@ -360,6 +356,8 @@ if ! run_for_each_host BUILD build_image build.log; then
   exit 1
 fi
 
+phase_mark build
+
 
 # ============================================================
 # Remove existing VMs
@@ -413,6 +411,8 @@ for host in "${HOSTS[@]}"; do
   fi
 done
 
+phase_mark remove
+
 
 # ============================================================
 # Convert images to VDI
@@ -463,6 +463,8 @@ if ! run_for_each_host CONVERT convert_image convert.log; then
   echo "Image conversion failed!"
   exit 1
 fi
+
+phase_mark convert
 
 
 # ============================================================
@@ -518,6 +520,8 @@ for host in "${HOSTS[@]}"; do
   echo "  NIC2:      host-only (${HOSTONLY_INTERFACE})"
 done
 
+phase_mark create
+
 
 # ============================================================
 # Start VMs
@@ -545,7 +549,11 @@ for host in "${HOSTS[@]}"; do
 done
 
 
+phase_mark start
+
 echo
 echo "========================================"
-echo " VirtualBox deployment completed!"
+echo " VirtualBox deployment completed in $(format_duration "${SECONDS}")"
 echo "========================================"
+
+phase_summary
