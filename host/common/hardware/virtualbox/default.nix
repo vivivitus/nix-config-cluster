@@ -24,6 +24,6 @@
 
     kernelModules = [ "btrfs" ];
     initrd.kernelModules = [ "btrfs" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    #kernelPackages = pkgs.linuxPackages_latest;
   };
 }
