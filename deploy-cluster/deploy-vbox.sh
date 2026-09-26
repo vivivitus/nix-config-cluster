@@ -9,6 +9,22 @@ TARGETS_FILE="${SCRIPT_DIR}/.deploy-targets.json"
 BRIDGE_SCRIPT="${SCRIPT_DIR}/bridge-interface.sh"
 EXTRA_FILES_DIR="${SCRIPT_DIR}/extra-files"
 
+# VirtualBox host-only cluster network
+HOSTONLY_IP="192.168.63.1"
+HOSTONLY_NETMASK="255.255.255.0"
+HOSTONLY_INTERFACE=""
+
+if command -v VBoxManage >/dev/null 2>&1; then
+  VBOXMANAGE="VBoxManage"
+elif [[ -x "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe" ]]; then
+  VBOXMANAGE="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+else
+  echo "ERROR: VBoxManage not found."
+  echo "Expected Windows installation at:"
+  echo "  C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
+  exit 1
+fi
+
 if [[ $# -ne 1 ]]; then
   echo "Usage:"
   echo "  $0 vm"
@@ -37,6 +53,119 @@ if [[ -z "${BRIDGE_INTERFACE}" ]]; then
 fi
 
 echo "Using bridge interface: ${BRIDGE_INTERFACE}"
+
+
+# ============================================================
+# VirtualBox host-only network
+# ============================================================
+
+ensure_hostonly_network() {
+  echo
+  echo "========================================"
+  echo " Checking VirtualBox host-only network"
+  echo "========================================"
+  echo
+
+  echo "Looking for host-only network:"
+  echo "  IP:      ${HOSTONLY_IP}"
+  echo "  Netmask: ${HOSTONLY_NETMASK}"
+
+  # Look for an existing host-only interface with the desired IP.
+  HOSTONLY_INTERFACE="$(
+    VBoxManage list hostonlyifs |
+      awk -v wanted_ip="${HOSTONLY_IP}" '
+        /^Name:/ {
+          name=$2
+        }
+
+        /^IPAddress:/ && $2 == wanted_ip {
+          print name
+          exit
+        }
+      '
+  )"
+
+  if [[ -n "${HOSTONLY_INTERFACE}" ]]; then
+    echo "Host-only interface already exists:"
+    echo "  ${HOSTONLY_INTERFACE}"
+
+    return 0
+  fi
+
+  echo
+  echo "No matching host-only interface found."
+  echo "Creating one..."
+
+  CREATE_OUTPUT="$(VBoxManage hostonlyif create 2>&1)" || {
+    echo "ERROR: Failed to create VirtualBox host-only interface."
+    echo
+    echo "${CREATE_OUTPUT}"
+    exit 1
+  }
+
+  echo "${CREATE_OUTPUT}"
+
+  # Find the newly created interface.
+  # VirtualBox normally creates vboxnet0, vboxnet1, ...
+  HOSTONLY_INTERFACE="$(
+    VBoxManage list hostonlyifs |
+      awk -v wanted_ip="${HOSTONLY_IP}" '
+        /^Name:/ {
+          name=$2
+        }
+
+        /^IPAddress:/ && $2 == wanted_ip {
+          print name
+          exit
+        }
+      '
+  )"
+
+  if [[ -z "${HOSTONLY_INTERFACE}" ]]; then
+    echo
+    echo "No interface with ${HOSTONLY_IP} exists yet."
+    echo "Configuring the newest host-only interface..."
+
+    HOSTONLY_INTERFACE="$(
+      VBoxManage list hostonlyifs |
+        awk '
+          /^Name:/ {
+            name=$2
+          }
+
+          /^IPAddress:/ {
+            last=name
+          }
+
+          END {
+            if (last != "") {
+              print last
+            }
+          }
+        '
+    )"
+  fi
+
+  if [[ -z "${HOSTONLY_INTERFACE}" ]]; then
+    echo
+    echo "ERROR: Could not determine created host-only interface."
+    exit 1
+  fi
+
+  echo
+  echo "Configuring host-only interface:"
+  echo "  ${HOSTONLY_INTERFACE}"
+
+  VBoxManage hostonlyif ipconfig "${HOSTONLY_INTERFACE}" \
+    --ip "${HOSTONLY_IP}" \
+    --netmask "${HOSTONLY_NETMASK}"
+
+  echo
+  echo "Host-only network ready:"
+  echo "  Interface: ${HOSTONLY_INTERFACE}"
+  echo "  Network:   ${HOSTONLY_IP}/24"
+}
+
 
 if [[ "${TARGET}" == "vm" ]]; then
   mapfile -t HOSTS < <(
@@ -69,6 +198,18 @@ fi
 echo
 echo "VirtualBox targets:"
 printf '  %s\n' "${HOSTS[@]}"
+
+
+# ============================================================
+# Prepare host-only network before doing anything else
+# ============================================================
+
+ensure_hostonly_network
+
+
+# ============================================================
+# Build Disko images
+# ============================================================
 
 echo
 echo "========================================"
@@ -142,43 +283,51 @@ build_image() {
   echo "  ${raw_image_path}"
 }
 
-declare -A BUILD_PIDS
 
-for host in "${HOSTS[@]}"; do
-  build_dir="${SCRIPT_DIR}/build-${host}"
-  mkdir -p "${build_dir}"
+# declare -A BUILD_PIDS
 
-  echo "Building ${host}... Log: ${build_dir}/build.log"
+# for host in "${HOSTS[@]}"; do
+#   build_dir="${SCRIPT_DIR}/build-${host}"
+#   mkdir -p "${build_dir}"
 
-  build_image "${host}" >"${build_dir}/build.log" 2>&1 &
-  BUILD_PIDS["${host}"]=$!
-done
+#   echo "Building ${host}... Log: ${build_dir}/build.log"
 
-BUILD_FAILED=0
+#   build_image "${host}" >"${build_dir}/build.log" 2>&1 &
+#   BUILD_PIDS["${host}"]=$!
+# done
 
-for host in "${HOSTS[@]}"; do
-  pid="${BUILD_PIDS[${host}]}"
 
-  if wait "${pid}"; then
-    echo
-    echo "BUILD OK: ${host}"
-  else
-    echo "BUILD FAILED: ${host}"
-    echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
-    BUILD_FAILED=1
-  fi
-done
+# BUILD_FAILED=0
 
-if [[ "${BUILD_FAILED}" -ne 0 ]]; then
-  echo
-  echo " Image build failed!"
-  echo " Existing VMs were NOT touched."
-  exit 1
-fi
+# for host in "${HOSTS[@]}"; do
+#   pid="${BUILD_PIDS[${host}]}"
+
+#   if wait "${pid}"; then
+#     echo
+#     echo "BUILD OK: ${host}"
+#   else
+#     echo "BUILD FAILED: ${host}"
+#     echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
+#     BUILD_FAILED=1
+#   fi
+# done
+
+
+# if [[ "${BUILD_FAILED}" -ne 0 ]]; then
+#   echo
+#   echo "Image build failed!"
+#   echo "Existing VMs were NOT touched."
+#   exit 1
+# fi
+
+
+# ============================================================
+# Remove existing VMs
+# ============================================================
 
 echo
 echo "========================================"
-echo "Removing existing VM(s)"
+echo " Removing existing VM(s)"
 echo "========================================"
 echo
 
@@ -211,6 +360,11 @@ for host in "${HOSTS[@]}"; do
     rm -rf "${VM_DIR}"
   fi
 done
+
+
+# ============================================================
+# Create VMs
+# ============================================================
 
 for host in "${HOSTS[@]}"; do
   BUILD_DIR="${SCRIPT_DIR}/build-${host}"
@@ -278,12 +432,20 @@ for host in "${HOSTS[@]}"; do
   # NIC2: host-only cluster network
   VBoxManage modifyvm "${host}" \
     --nic2 hostonly \
-    --hostonlyadapter2 "vboxnet1"
+    --hostonlyadapter2 "${HOSTONLY_INTERFACE}"
 
+  echo
   echo "VM created:"
-  echo "  Name: ${host}"
-  echo "  VDI:  ${VDI_OUTPUT}"
+  echo "  Name:      ${host}"
+  echo "  VDI:       ${VDI_OUTPUT}"
+  echo "  NIC1:      bridged (${BRIDGE_INTERFACE})"
+  echo "  NIC2:      host-only (${HOSTONLY_INTERFACE})"
 done
+
+
+# ============================================================
+# Start VMs
+# ============================================================
 
 echo
 echo "========================================"
@@ -305,6 +467,7 @@ for host in "${HOSTS[@]}"; do
   echo "  Name: ${host}"
   echo "  IP:   ${IP_ADDRESS}"
 done
+
 
 echo
 echo "========================================"
