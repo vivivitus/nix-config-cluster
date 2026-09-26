@@ -143,6 +143,7 @@
         src = inputs.disko;
         patches = [
           ./patches/disko-umount.patch
+          ./patches/disko-qemu-tcg.patch
         ];
       };
 
