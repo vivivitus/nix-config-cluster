@@ -72,7 +72,7 @@ ensure_hostonly_network() {
 
   # Look for an existing host-only interface with the desired IP.
   HOSTONLY_INTERFACE="$(
-    VBoxManage list hostonlyifs |
+    $VBOXMANAGE list hostonlyifs |
       awk -v wanted_ip="${HOSTONLY_IP}" '
         /^Name:/ {
           name=$2
@@ -96,7 +96,7 @@ ensure_hostonly_network() {
   echo "No matching host-only interface found."
   echo "Creating one..."
 
-  CREATE_OUTPUT="$(VBoxManage hostonlyif create 2>&1)" || {
+  CREATE_OUTPUT="$($VBOXMANAGE hostonlyif create 2>&1)" || {
     echo "ERROR: Failed to create VirtualBox host-only interface."
     echo
     echo "${CREATE_OUTPUT}"
@@ -108,7 +108,7 @@ ensure_hostonly_network() {
   # Find the newly created interface.
   # VirtualBox normally creates vboxnet0, vboxnet1, ...
   HOSTONLY_INTERFACE="$(
-    VBoxManage list hostonlyifs |
+    $VBOXMANAGE list hostonlyifs |
       awk -v wanted_ip="${HOSTONLY_IP}" '
         /^Name:/ {
           name=$2
@@ -127,7 +127,7 @@ ensure_hostonly_network() {
     echo "Configuring the newest host-only interface..."
 
     HOSTONLY_INTERFACE="$(
-      VBoxManage list hostonlyifs |
+      $VBOXMANAGE list hostonlyifs |
         awk '
           /^Name:/ {
             name=$2
@@ -156,7 +156,7 @@ ensure_hostonly_network() {
   echo "Configuring host-only interface:"
   echo "  ${HOSTONLY_INTERFACE}"
 
-  VBoxManage hostonlyif ipconfig "${HOSTONLY_INTERFACE}" \
+  $VBOXMANAGE hostonlyif ipconfig "${HOSTONLY_INTERFACE}" \
     --ip "${HOSTONLY_IP}" \
     --netmask "${HOSTONLY_NETMASK}"
 
@@ -284,41 +284,41 @@ build_image() {
 }
 
 
-# declare -A BUILD_PIDS
+declare -A BUILD_PIDS
 
-# for host in "${HOSTS[@]}"; do
-#   build_dir="${SCRIPT_DIR}/build-${host}"
-#   mkdir -p "${build_dir}"
+for host in "${HOSTS[@]}"; do
+  build_dir="${SCRIPT_DIR}/build-${host}"
+  mkdir -p "${build_dir}"
 
-#   echo "Building ${host}... Log: ${build_dir}/build.log"
+  echo "Building ${host}... Log: ${build_dir}/build.log"
 
-#   build_image "${host}" >"${build_dir}/build.log" 2>&1 &
-#   BUILD_PIDS["${host}"]=$!
-# done
-
-
-# BUILD_FAILED=0
-
-# for host in "${HOSTS[@]}"; do
-#   pid="${BUILD_PIDS[${host}]}"
-
-#   if wait "${pid}"; then
-#     echo
-#     echo "BUILD OK: ${host}"
-#   else
-#     echo "BUILD FAILED: ${host}"
-#     echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
-#     BUILD_FAILED=1
-#   fi
-# done
+  build_image "${host}" >"${build_dir}/build.log" 2>&1 &
+  BUILD_PIDS["${host}"]=$!
+done
 
 
-# if [[ "${BUILD_FAILED}" -ne 0 ]]; then
-#   echo
-#   echo "Image build failed!"
-#   echo "Existing VMs were NOT touched."
-#   exit 1
-# fi
+BUILD_FAILED=0
+
+for host in "${HOSTS[@]}"; do
+  pid="${BUILD_PIDS[${host}]}"
+
+  if wait "${pid}"; then
+    echo
+    echo "BUILD OK: ${host}"
+  else
+    echo "BUILD FAILED: ${host}"
+    echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
+    BUILD_FAILED=1
+  fi
+done
+
+
+if [[ "${BUILD_FAILED}" -ne 0 ]]; then
+  echo
+  echo "Image build failed!"
+  echo "Existing VMs were NOT touched."
+  exit 1
+fi
 
 
 # ============================================================
@@ -335,16 +335,16 @@ for host in "${HOSTS[@]}"; do
   echo
   echo "Processing existing VM: ${host}"
 
-  if VBoxManage showvminfo "${host}" >/dev/null 2>&1; then
+  if $VBOXMANAGE showvminfo "${host}" >/dev/null 2>&1; then
     echo "Stopping existing VM..."
 
-    VBoxManage controlvm "${host}" poweroff 2>/dev/null || true
+    $VBOXMANAGE controlvm "${host}" poweroff 2>/dev/null || true
 
     sleep 2
 
     echo "Unregistering old VM..."
 
-    VBoxManage unregistervm \
+    $VBOXMANAGE unregistervm \
       "${host}" \
       --delete-all 2>/dev/null || true
   else
@@ -394,30 +394,30 @@ for host in "${HOSTS[@]}"; do
 
   echo "Converting RAW image to VDI..."
 
-  VBoxManage convertfromraw \
+  $VBOXMANAGE convertfromraw \
     "${RAW_IMAGE_PATH}" \
     "${VDI_OUTPUT}" \
     --format VDI
 
   echo "Creating VirtualBox VM..."
 
-  VBoxManage createvm \
+  $VBOXMANAGE createvm \
     --name "${host}" \
     --ostype "Linux_64" \
     --register
 
   # BIOS is the default VirtualBox firmware.
   # Do not enable EFI.
-  VBoxManage modifyvm "${host}" \
+  $VBOXMANAGE modifyvm "${host}" \
     --memory 6144 \
     --cpus 4
 
-  VBoxManage storagectl "${host}" \
+  $VBOXMANAGE storagectl "${host}" \
     --name "SATA Controller" \
     --add sata \
     --bootable on
 
-  VBoxManage storageattach "${host}" \
+  $VBOXMANAGE storageattach "${host}" \
     --storagectl "SATA Controller" \
     --port 0 \
     --device 0 \
@@ -425,12 +425,12 @@ for host in "${HOSTS[@]}"; do
     --medium "${VDI_OUTPUT}"
 
   # NIC1: normal LAN / Internet
-  VBoxManage modifyvm "${host}" \
+  $VBOXMANAGE modifyvm "${host}" \
     --nic1 bridged \
     --bridgeadapter1 "${BRIDGE_INTERFACE}"
 
   # NIC2: host-only cluster network
-  VBoxManage modifyvm "${host}" \
+  $VBOXMANAGE modifyvm "${host}" \
     --nic2 hostonly \
     --hostonlyadapter2 "${HOSTONLY_INTERFACE}"
 
@@ -462,7 +462,7 @@ for host in "${HOSTS[@]}"; do
 
   echo "Starting ${host}..."
 
-  VBoxManage startvm "${host}" --type headless
+  $VBOXMANAGE startvm "${host}" --type headless
 
   echo "  Name: ${host}"
   echo "  IP:   ${IP_ADDRESS}"
