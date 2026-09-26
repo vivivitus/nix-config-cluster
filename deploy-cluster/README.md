@@ -115,6 +115,8 @@ This guide explains how to set up the NixOS deployment environment on Windows us
 
 Install the [latest version of VirtualBox](https://www.virtualbox.org/wiki/Downloads) on Windows.
 
+#### Variant 1 - Install NixOS WSL
+
 Download the [NixOS-WSL image](https://github.com/nix-community/NixOS-WSL/releases) and install it with:
 
     wsl --install --from-file [nixos.wsl]
@@ -122,6 +124,18 @@ Download the [NixOS-WSL image](https://github.com/nix-community/NixOS-WSL/releas
 Start the installed WSL image with:
 
     wsl -d NixOS
+
+#### Variant 2 - Already have wsl, install Nix package manager
+
+    https://nixos.org/download/
+
+### KVM permission
+
+Give your user access to kvm with
+
+```bash
+sudo usermod -aG kvm "$(id -un)"
+```
 
 ### Prepare the environment
 

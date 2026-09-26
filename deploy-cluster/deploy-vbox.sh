@@ -14,16 +14,85 @@ HOSTONLY_IP="192.168.63.1"
 HOSTONLY_NETMASK="255.255.255.0"
 HOSTONLY_INTERFACE=""
 
-if command -v VBoxManage >/dev/null 2>&1; then
-  VBOXMANAGE="VBoxManage"
-elif [[ -x "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe" ]]; then
-  VBOXMANAGE="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
-else
-  echo "ERROR: VBoxManage not found."
-  echo "Expected Windows installation at:"
-  echo "  C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
-  exit 1
-fi
+# shellcheck source=vbox-lib.sh
+source "${SCRIPT_DIR}/vbox-lib.sh"
+
+vbox_require
+
+# Prefix each line with an ISO 8601 timestamp.
+timestamp_lines() {
+  local line
+
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    printf '%(%Y-%m-%dT%H:%M:%S%z)T %s\n' -1 "${line}"
+  done
+}
+
+# Path of the raw image in <build dir>, or failure if there is none.
+find_raw_image() {
+  local build_dir="$1"
+  local path
+
+  path="$(
+    find "${build_dir}" \
+      -maxdepth 1 \
+      -name "*.raw" \
+      -print \
+      -quit
+  )"
+
+  if [[ -z "${path}" ]]; then
+    echo "ERROR: No raw image found in:" >&2
+    echo "  ${build_dir}" >&2
+    return 1
+  fi
+
+  printf '%s\n' "${path}"
+}
+
+# VBOX_IMAGE_DIR empty means "next to the build", hence :- rather than the
+# - used when picking the platform default.
+vdi_path() {
+  local host="$1"
+  local build_dir="$2"
+
+  printf '%s\n' "${VBOX_IMAGE_DIR:-${build_dir}}/vbox-${host}.vdi"
+}
+
+# Run <func> <host> for every host in the background, logging each to
+# build-<host>/<log name>. Non-zero if any host failed.
+run_for_each_host() {
+  local label="$1"
+  local func="$2"
+  local log_name="$3"
+
+  local -A pids=()
+  local failed=0
+  local host
+  local log
+
+  for host in "${HOSTS[@]}"; do
+    log="${SCRIPT_DIR}/build-${host}/${log_name}"
+
+    echo "${label} ${host}... Log: ${log}"
+
+    { "${func}" "${host}" 2>&1 | timestamp_lines; } >"${log}" &
+    pids["${host}"]=$!
+  done
+
+  for host in "${HOSTS[@]}"; do
+    if wait "${pids[${host}]}"; then
+      echo
+      echo "${label} OK: ${host}"
+    else
+      echo "${label} FAILED: ${host}"
+      echo "  Log: ${SCRIPT_DIR}/build-${host}/${log_name}"
+      failed=1
+    fi
+  done
+
+  return "${failed}"
+}
 
 if [[ $# -ne 1 ]]; then
   echo "Usage:"
@@ -71,19 +140,7 @@ ensure_hostonly_network() {
   echo "  Netmask: ${HOSTONLY_NETMASK}"
 
   # Look for an existing host-only interface with the desired IP.
-  HOSTONLY_INTERFACE="$(
-    $VBOXMANAGE list hostonlyifs |
-      awk -v wanted_ip="${HOSTONLY_IP}" '
-        /^Name:/ {
-          name=$2
-        }
-
-        /^IPAddress:/ && $2 == wanted_ip {
-          print name
-          exit
-        }
-      '
-  )"
+  HOSTONLY_INTERFACE="$(vbox_if_name_by_ip hostonlyifs "${HOSTONLY_IP}")"
 
   if [[ -n "${HOSTONLY_INTERFACE}" ]]; then
     echo "Host-only interface already exists:"
@@ -96,7 +153,7 @@ ensure_hostonly_network() {
   echo "No matching host-only interface found."
   echo "Creating one..."
 
-  CREATE_OUTPUT="$($VBOXMANAGE hostonlyif create 2>&1)" || {
+  CREATE_OUTPUT="$(vbox_out_merged hostonlyif create)" || {
     echo "ERROR: Failed to create VirtualBox host-only interface."
     echo
     echo "${CREATE_OUTPUT}"
@@ -106,44 +163,16 @@ ensure_hostonly_network() {
   echo "${CREATE_OUTPUT}"
 
   # Find the newly created interface.
-  # VirtualBox normally creates vboxnet0, vboxnet1, ...
-  HOSTONLY_INTERFACE="$(
-    $VBOXMANAGE list hostonlyifs |
-      awk -v wanted_ip="${HOSTONLY_IP}" '
-        /^Name:/ {
-          name=$2
-        }
-
-        /^IPAddress:/ && $2 == wanted_ip {
-          print name
-          exit
-        }
-      '
-  )"
+  HOSTONLY_INTERFACE="$(vbox_if_name_by_ip hostonlyifs "${HOSTONLY_IP}")"
 
   if [[ -z "${HOSTONLY_INTERFACE}" ]]; then
     echo
     echo "No interface with ${HOSTONLY_IP} exists yet."
     echo "Configuring the newest host-only interface..."
 
-    HOSTONLY_INTERFACE="$(
-      $VBOXMANAGE list hostonlyifs |
-        awk '
-          /^Name:/ {
-            name=$2
-          }
-
-          /^IPAddress:/ {
-            last=name
-          }
-
-          END {
-            if (last != "") {
-              print last
-            }
-          }
-        '
-    )"
+    # Linux names these vboxnet0, vboxnet1, ...
+    # Windows uses "VirtualBox Host-Only Ethernet Adapter [#N]".
+    HOSTONLY_INTERFACE="$(vbox_last_if_name hostonlyifs)"
   fi
 
   if [[ -z "${HOSTONLY_INTERFACE}" ]]; then
@@ -156,7 +185,7 @@ ensure_hostonly_network() {
   echo "Configuring host-only interface:"
   echo "  ${HOSTONLY_INTERFACE}"
 
-  $VBOXMANAGE hostonlyif ipconfig "${HOSTONLY_INTERFACE}" \
+  vbox hostonlyif ipconfig "${HOSTONLY_INTERFACE}" \
     --ip "${HOSTONLY_IP}" \
     --netmask "${HOSTONLY_NETMASK}"
 
@@ -208,6 +237,42 @@ ensure_hostonly_network
 
 
 # ============================================================
+# Locate the VirtualBox machine folder
+# ============================================================
+#
+# Under WSL this is on the Windows side, not under ${HOME}.
+
+MACHINE_FOLDER="$(vbox_machine_folder)"
+
+# Guards the rm -rf in the VM removal loop below: an empty value there would
+# make "${MACHINE_FOLDER}/${host}" resolve to / on an empty host.
+if [[ -z "${MACHINE_FOLDER}" || "${MACHINE_FOLDER}" == "/" ]]; then
+  echo "ERROR: Implausible VirtualBox machine folder: '${MACHINE_FOLDER}'"
+  exit 1
+fi
+
+echo
+echo "VirtualBox machine folder: ${MACHINE_FOLDER}"
+
+# VDIs live on a Windows drive: the WSL virtual disk never shrinks back below
+# its high-water mark. VBOX_IMAGE_DIR="" keeps them in the build directory.
+
+if ((VBOX_ON_WINDOWS)); then
+  VBOX_IMAGE_DIR="${VBOX_IMAGE_DIR-/mnt/c/vbox-images}"
+else
+  VBOX_IMAGE_DIR="${VBOX_IMAGE_DIR-}"
+fi
+
+if [[ -n "${VBOX_IMAGE_DIR}" ]]; then
+  mkdir -p "${VBOX_IMAGE_DIR}"
+
+  echo "Disk image directory:      ${VBOX_IMAGE_DIR}"
+else
+  echo "Disk image directory:      per-host build directory"
+fi
+
+
+# ============================================================
 # Build Disko images
 # ============================================================
 
@@ -253,9 +318,20 @@ build_image() {
     "${REPO_ROOT}#nixosConfigurations.${host}.config.system.build.diskoImagesScript" \
     --out-link "${build_dir}/result"
 
+  # Without enableParallelBuilding the builder VM gets one vCPU, which
+  # serialises disko's nix store copy. Split the host's cores across the
+  # builds running concurrently.
+  local build_cores=$(( $(nproc) / ${#HOSTS[@]} ))
+
+  if (( build_cores < 1 )); then
+    build_cores=1
+  fi
+
   (
     cd "${build_dir}"
 
+    enableParallelBuilding=1 \
+    NIX_BUILD_CORES="${build_cores}" \
     bash -x ./result \
       "${disko_args[@]}" \
       --build-memory 2048
@@ -263,20 +339,7 @@ build_image() {
 
   local raw_image_path
 
-  raw_image_path="$(
-    find "${build_dir}" \
-      -maxdepth 1 \
-      -name "*.raw" \
-      -print \
-      -quit
-  )"
-
-  if [[ -z "${raw_image_path}" ]]; then
-    echo
-    echo "ERROR: No raw image found in:"
-    echo "  ${build_dir}"
-    return 1
-  fi
+  raw_image_path="$(find_raw_image "${build_dir}")"
 
   echo
   echo "Image build finished successfully:"
@@ -284,36 +347,13 @@ build_image() {
 }
 
 
-declare -A BUILD_PIDS
-
 for host in "${HOSTS[@]}"; do
-  build_dir="${SCRIPT_DIR}/build-${host}"
-  mkdir -p "${build_dir}"
-
-  echo "Building ${host}... Log: ${build_dir}/build.log"
-
-  build_image "${host}" >"${build_dir}/build.log" 2>&1 &
-  BUILD_PIDS["${host}"]=$!
+  # A build that dies after partitioning leaves a multi-gigabyte image behind.
+  rm -rf "${SCRIPT_DIR}/build-${host}"
+  mkdir -p "${SCRIPT_DIR}/build-${host}"
 done
 
-
-BUILD_FAILED=0
-
-for host in "${HOSTS[@]}"; do
-  pid="${BUILD_PIDS[${host}]}"
-
-  if wait "${pid}"; then
-    echo
-    echo "BUILD OK: ${host}"
-  else
-    echo "BUILD FAILED: ${host}"
-    echo "  Log: ${SCRIPT_DIR}/build-${host}/build.log"
-    BUILD_FAILED=1
-  fi
-done
-
-
-if [[ "${BUILD_FAILED}" -ne 0 ]]; then
+if ! run_for_each_host BUILD build_image build.log; then
   echo
   echo "Image build failed!"
   echo "Existing VMs were NOT touched."
@@ -331,29 +371,41 @@ echo " Removing existing VM(s)"
 echo "========================================"
 echo
 
+REGISTERED=()
+
 for host in "${HOSTS[@]}"; do
   echo
   echo "Processing existing VM: ${host}"
 
-  if $VBOXMANAGE showvminfo "${host}" >/dev/null 2>&1; then
+  if vbox showvminfo "${host}" >/dev/null 2>&1; then
     echo "Stopping existing VM..."
 
-    $VBOXMANAGE controlvm "${host}" poweroff 2>/dev/null || true
+    vbox controlvm "${host}" poweroff 2>/dev/null || true
 
-    sleep 2
-
-    echo "Unregistering old VM..."
-
-    $VBOXMANAGE unregistervm \
-      "${host}" \
-      --delete-all 2>/dev/null || true
+    REGISTERED+=("${host}")
   else
     echo "No registered VM found."
   fi
+done
 
-  VM_DIR="${HOME}/VirtualBox VMs/${host}"
+# One settle for every VM rather than one per VM.
+if [[ "${#REGISTERED[@]}" -gt 0 ]]; then
+  sleep 2
 
-  if [[ -d "${VM_DIR}" ]]; then
+  for host in "${REGISTERED[@]}"; do
+    echo "Unregistering old VM: ${host}"
+
+    vbox unregistervm \
+      "${host}" \
+      --delete-all 2>/dev/null || true
+  done
+fi
+
+for host in "${HOSTS[@]}"; do
+  VM_DIR="${MACHINE_FOLDER}/${host}"
+
+  # -n on host as well: MACHINE_FOLDER alone is not the intended target.
+  if [[ -n "${host}" && -d "${VM_DIR}" ]]; then
     echo "Removing stale VirtualBox VM directory:"
     echo "  ${VM_DIR}"
 
@@ -363,74 +415,98 @@ done
 
 
 # ============================================================
+# Convert images to VDI
+# ============================================================
+#
+# After VM removal: unregistervm --delete-all deletes attached media, which
+# would take a freshly converted VDI with it.
+
+echo
+echo "========================================"
+echo " Converting image(s) to VDI"
+echo "========================================"
+echo
+
+convert_image() {
+  local host="$1"
+
+  local build_dir="${SCRIPT_DIR}/build-${host}"
+  local raw_image_path
+  local vdi_output
+
+  raw_image_path="$(find_raw_image "${build_dir}")"
+  vdi_output="$(vdi_path "${host}" "${build_dir}")"
+
+  rm -f "${vdi_output}"
+
+  echo "Converting RAW image to VDI..."
+  echo "  From: ${raw_image_path}"
+  echo "  To:   ${vdi_output}"
+
+  vbox convertfromraw \
+    "$(vbox_path "${raw_image_path}")" \
+    "$(vbox_path "${vdi_output}")" \
+    --format VDI
+
+  # Keeps the WSL disk's high-water mark down; the next deploy rebuilds it.
+  # KEEP_RAW_IMAGE=1 to retain it for debugging.
+  if [[ -z "${KEEP_RAW_IMAGE:-}" ]]; then
+    echo "Removing raw image: ${raw_image_path}"
+
+    rm -f "${raw_image_path}"
+  fi
+}
+
+
+if ! run_for_each_host CONVERT convert_image convert.log; then
+  echo
+  echo "Image conversion failed!"
+  exit 1
+fi
+
+
+# ============================================================
 # Create VMs
 # ============================================================
 
 for host in "${HOSTS[@]}"; do
-  BUILD_DIR="${SCRIPT_DIR}/build-${host}"
-
-  RAW_IMAGE_PATH="$(
-    find "${BUILD_DIR}" \
-      -maxdepth 1 \
-      -name "*.raw" \
-      -print \
-      -quit
-  )"
-
-  if [[ -z "${RAW_IMAGE_PATH}" ]]; then
-    echo "ERROR: No raw image found for ${host}:"
-    echo "  ${BUILD_DIR}"
-    exit 1
-  fi
-
-  VDI_OUTPUT="${BUILD_DIR}/vbox-${host}.vdi"
+  VDI_OUTPUT="$(vdi_path "${host}" "${SCRIPT_DIR}/build-${host}")"
 
   echo
   echo "========================================"
   echo " Creating VM: ${host}"
   echo "========================================"
 
-  rm -f "${VDI_OUTPUT}"
-
-  echo "Converting RAW image to VDI..."
-
-  $VBOXMANAGE convertfromraw \
-    "${RAW_IMAGE_PATH}" \
-    "${VDI_OUTPUT}" \
-    --format VDI
-
-  echo "Creating VirtualBox VM..."
-
-  $VBOXMANAGE createvm \
+  vbox createvm \
     --name "${host}" \
     --ostype "Linux_64" \
     --register
 
   # BIOS is the default VirtualBox firmware.
   # Do not enable EFI.
-  $VBOXMANAGE modifyvm "${host}" \
+  vbox modifyvm "${host}" \
     --memory 6144 \
     --cpus 4
 
-  $VBOXMANAGE storagectl "${host}" \
+  vbox storagectl "${host}" \
     --name "SATA Controller" \
     --add sata \
     --bootable on
 
-  $VBOXMANAGE storageattach "${host}" \
+  vbox storageattach "${host}" \
     --storagectl "SATA Controller" \
     --port 0 \
     --device 0 \
     --type hdd \
-    --medium "${VDI_OUTPUT}"
+    --medium "$(vbox_path "${VDI_OUTPUT}")"
 
   # NIC1: normal LAN / Internet
-  $VBOXMANAGE modifyvm "${host}" \
+  vbox modifyvm "${host}" \
     --nic1 bridged \
     --bridgeadapter1 "${BRIDGE_INTERFACE}"
 
   # NIC2: host-only cluster network
-  $VBOXMANAGE modifyvm "${host}" \
+  vbox modifyvm "${host}" \
     --nic2 hostonly \
     --hostonlyadapter2 "${HOSTONLY_INTERFACE}"
 
@@ -462,7 +538,7 @@ for host in "${HOSTS[@]}"; do
 
   echo "Starting ${host}..."
 
-  $VBOXMANAGE startvm "${host}" --type headless
+  vbox startvm "${host}" --type headless
 
   echo "  Name: ${host}"
   echo "  IP:   ${IP_ADDRESS}"
