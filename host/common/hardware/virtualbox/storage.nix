@@ -1,7 +1,7 @@
 { lib, ... }:
 
 {
-  disko.extraRootModules = [ "btrfs" ];
+  disko.imageBuilder.extraRootModules = [ "btrfs" ];
   disko.devices.disk.virtualbox = {
     type = "disk";
     device = "/dev/sda";
