@@ -1,4 +1,3 @@
-```diff
 --- a/lib/make-disk-image.nix
 +++ b/lib/make-disk-image.nix
 @@ -168,5 +168,5 @@
@@ -15,4 +14,3 @@
 +    QEMU_OPTS+=" -machine accel=tcg,thread=multi"
      QEMU_OPTS+=" -m $build_memory -object memory-backend-memfd,id=mem,size=''${build_memory}M,share=on -machine memory-backend=mem"
      export QEMU_OPTS
-```
