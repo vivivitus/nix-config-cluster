@@ -525,15 +525,17 @@ for host in "${HOSTS[@]}"; do
   # Do not enable EFI.
   vbox modifyvm "${host}" \
     --memory 6144 \
-    --cpus 4
+    --cpus 4 \
+    --firmware efi
 
   vbox storagectl "${host}" \
-    --name "SATA Controller" \
-    --add sata \
+    --name "NVMe Controller" \
+    --add pcie \
+    --controller NVMe \
     --bootable on
 
   vbox storageattach "${host}" \
-    --storagectl "SATA Controller" \
+    --storagectl "NVMe Controller" \
     --port 0 \
     --device 0 \
     --type hdd \

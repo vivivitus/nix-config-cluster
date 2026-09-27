@@ -1,7 +1,10 @@
 { lib, ... }:
 
 {
-  disko.imageBuilder.extraRootModules = [ "btrfs" ];
+  disko.imageBuilder.extraRootModules = [
+    "btrfs"
+  ];
+
   disko.devices.disk.virtualbox = {
     type = "disk";
     device = "/dev/sda";
@@ -11,28 +14,32 @@
       type = "gpt";
 
       partitions = {
-        bios = {
-          size = "1M";
-          type = "EF02";
-          priority = 1;
+        esp = {
+          size = "512M";
+          type = "EF00";
+
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = [
+              "umask=0077"
+            ];
+          };
         };
 
         root = {
           size = "100%";
-          priority = 2;
 
           content = {
             type = "btrfs";
+
             extraArgs = [
               "-L"
               "root"
             ];
 
             subvolumes = {
-              "/boot" = {
-                mountpoint = "/boot";
-              };
-
               "/persist" = {
                 mountpoint = "/persist";
                 mountOptions = [
