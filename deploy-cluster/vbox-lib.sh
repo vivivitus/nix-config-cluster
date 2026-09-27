@@ -51,6 +51,13 @@ vbox_require() {
     echo "Paths cannot be translated for it." >&2
     exit 1
   fi
+
+  # Converting on Windows goes through qemu-img; checked here so a missing
+  # binary fails before the build and VM removal.
+  if ((VBOX_ON_WINDOWS)) && ! command -v qemu-img >/dev/null 2>&1; then
+    echo "ERROR: qemu-img not found. Run from the nix develop shell." >&2
+    exit 1
+  fi
 }
 
 vbox() {

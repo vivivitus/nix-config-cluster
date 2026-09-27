@@ -8,6 +8,9 @@ ROOT_DIR="$(cd .. && pwd)"
 
 TARGETS_FILE=".deploy-targets.json"
 
+# Options passed through to deploy-vbox.sh for the VM stack, e.g. --stagger.
+VBOX_ARGS=()
+
 # shellcheck source=common.sh
 source ./common.sh
 
@@ -93,7 +96,7 @@ deploy_vm_stack() {
   #      - start all VMs
   #
   # If any image build fails, existing VMs are left untouched.
-  ./deploy-vbox.sh vm
+  ./deploy-vbox.sh "${VBOX_ARGS[@]}" vm
 
   echo
   echo "========================================"
@@ -137,18 +140,26 @@ clean() {
 # Main
 # ========================================
 
+usage() {
+  echo "Usage:"
+  echo "  $0 deploy <host>"
+  echo "  $0 deploy vm [--stagger[=SECONDS]]"
+  echo "  $0 targets"
+  echo "  $0 clean"
+  exit 1
+}
+
 case "${1:-}" in
   targets)
     generate_targets
     ;;
 
   deploy)
-    if [[ $# -ne 2 ]]; then
-      echo "Usage:"
-      echo "  $0 deploy <host>"
-      echo "  $0 deploy vm"
-      exit 1
+    if [[ $# -lt 2 || ( "$2" != "vm" && $# -gt 2 ) ]]; then
+      usage
     fi
+
+    VBOX_ARGS=("${@:3}")
 
     generate_targets
     deploy "$2"
@@ -159,11 +170,6 @@ case "${1:-}" in
     ;;
 
   *)
-    echo "Usage:"
-    echo "  $0 deploy <host>"
-    echo "  $0 deploy vm"
-    echo "  $0 targets"
-    echo "  $0 clean"
-    exit 1
+    usage
     ;;
 esac

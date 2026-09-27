@@ -88,14 +88,46 @@ run_for_each_host() {
   return "${failed}"
 }
 
-if [[ $# -ne 1 ]]; then
+usage() {
   echo "Usage:"
-  echo "  $0 vm"
+  echo "  $0 vm [--stagger[=SECONDS]]"
   echo "  $0 <host>"
   exit 1
-fi
+}
 
-TARGET="$1"
+# Upper bound on the wait for the previous VM before starting the next one;
+# 0 starts all VMs at once.
+STAGGER_TIMEOUT=0
+TARGET=""
+
+for arg in "$@"; do
+  case "${arg}" in
+    --stagger)
+      STAGGER_TIMEOUT=45
+      ;;
+    --stagger=*)
+      STAGGER_TIMEOUT="${arg#--stagger=}"
+
+      if [[ ! "${STAGGER_TIMEOUT}" =~ ^[0-9]+$ ]]; then
+        usage
+      fi
+      ;;
+    -*)
+      usage
+      ;;
+    *)
+      if [[ -n "${TARGET}" ]]; then
+        usage
+      fi
+
+      TARGET="${arg}"
+      ;;
+  esac
+done
+
+if [[ -z "${TARGET}" ]]; then
+  usage
+fi
 
 if [[ ! -f "${TARGETS_FILE}" ]]; then
   echo "ERROR: Deployment targets not found."
@@ -443,10 +475,15 @@ convert_image() {
   echo "  From: ${raw_image_path}"
   echo "  To:   ${vdi_output}"
 
-  vbox convertfromraw \
-    "$(vbox_path "${raw_image_path}")" \
-    "$(vbox_path "${vdi_output}")" \
-    --format VDI
+  # convertfromraw on Windows reads the full sparse image over \\wsl.localhost.
+  if ((VBOX_ON_WINDOWS)); then
+    qemu-img convert -f raw -O vdi "${raw_image_path}" "${vdi_output}"
+  else
+    vbox convertfromraw \
+      "$(vbox_path "${raw_image_path}")" \
+      "$(vbox_path "${vdi_output}")" \
+      --format VDI
+  fi
 
   # Keeps the WSL disk's high-water mark down; the next deploy rebuilds it.
   # KEEP_RAW_IMAGE=1 to retain it for debugging.
@@ -538,19 +575,42 @@ echo " Starting VM(s)"
 echo "========================================"
 echo
 
-# Starting several VMs at once starves them: VirtualBox logs multi-minute TM
-# catch-up lags and the guests miss their device-enumeration timeouts, landing
-# in the initrd emergency shell. VM_START_DELAY=0 disables the stagger.
-VM_START_DELAY="${VM_START_DELAY-45}"
+# Succeeds once <ip> accepts connections on the SSH port, fails after
+# <timeout> seconds.
+wait_for_ssh() {
+  local ip="$1"
+  local timeout="$2"
+  local deadline=$((SECONDS + timeout))
 
-started=0
+  while ((SECONDS < deadline)); do
+    if timeout 1 bash -c ": </dev/tcp/${ip}/22" 2>/dev/null; then
+      return 0
+    fi
+
+    sleep 1
+  done
+
+  return 1
+}
+
+# On a slow host, starting several VMs at once starves them: VirtualBox logs
+# multi-minute TM catch-up lags and the guests miss their device-enumeration
+# timeouts, landing in the initrd emergency shell. --stagger starts each VM
+# only once the previous one is up.
+PREVIOUS_IP=""
 
 for host in "${HOSTS[@]}"; do
-  if ((started > 0 && VM_START_DELAY > 0)); then
+  if [[ -n "${PREVIOUS_IP}" ]] && ((STAGGER_TIMEOUT > 0)); then
     echo
-    echo "Waiting ${VM_START_DELAY}s before starting the next VM..."
+    echo "Waiting up to ${STAGGER_TIMEOUT}s for ${PREVIOUS_IP} to accept SSH..."
 
-    sleep "${VM_START_DELAY}"
+    wait_start="${SECONDS}"
+
+    if wait_for_ssh "${PREVIOUS_IP}" "${STAGGER_TIMEOUT}"; then
+      echo "  Up after $((SECONDS - wait_start))s."
+    else
+      echo "  Not up after ${STAGGER_TIMEOUT}s, starting the next VM anyway."
+    fi
   fi
 
   IP_ADDRESS="$(
@@ -563,7 +623,7 @@ for host in "${HOSTS[@]}"; do
 
   vbox startvm "${host}" --type headless
 
-  started=$((started + 1))
+  PREVIOUS_IP="${IP_ADDRESS}"
 
   echo "  Name: ${host}"
   echo "  IP:   ${IP_ADDRESS}"
