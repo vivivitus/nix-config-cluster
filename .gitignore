@@ -8,6 +8,8 @@
 !/deploy-cluster/Vagrantfile
 !/deploy-cluster/bootstrap-iso.nix
 !/deploy-cluster/vbox-vm.nix
+!/deploy-cluster/vbox-lib.sh
+!/deploy-cluster/common.sh
 
 !/deploy-cluster/extra-files
 /deploy-cluster/extra-files/*

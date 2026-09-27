@@ -33,6 +33,7 @@
     {
       self,
       nixpkgs,
+      disko,
       home-manager,
       ...
     }@inputs:
@@ -94,8 +95,8 @@
           isVirtualMachine = true;
           clusterTarget = "staging";
           clusterBootstrap = true;
-          dhcpInterface = "enp0s8";
-          interface = "enp0s9";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
           ipv4Address = "192.168.63.101";
           ipv6Address = "fd42:42:42::101";
         };
@@ -103,8 +104,8 @@
         n2-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          dhcpInterface = "enp0s8";
-          interface = "enp0s9";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
           ipv4Address = "192.168.63.102";
           ipv6Address = "fd42:42:42::102";
         };
@@ -112,8 +113,8 @@
         n3-vm = {
           isVirtualMachine = true;
           clusterTarget = "staging";
-          dhcpInterface = "enp0s8";
-          interface = "enp0s9";
+          dhcpInterface = "enp0s3";
+          interface = "enp0s8";
           ipv4Address = "192.168.63.103";
           ipv6Address = "fd42:42:42::103";
         };
@@ -137,6 +138,14 @@
       mkHostConfig = hostName: hostDefaults // hostConfigs.${hostName};
       mkNetworkConfig = hostConfig: networkDefaults // hostConfig;
 
+      diskoPatched = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
+        name = "disko-patched";
+        src = inputs.disko;
+        patches = [
+          ./patches/disko-umount.patch
+        ];
+      };
+
       mkHostArgs =
         hostName:
         let
@@ -151,6 +160,8 @@
             hostName
             clusterConfig
             ;
+
+          diskoModule = "${diskoPatched}/module.nix";
 
           inherit (hostConfig)
             isFallback
