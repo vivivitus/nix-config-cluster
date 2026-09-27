@@ -533,7 +533,21 @@ echo " Starting VM(s)"
 echo "========================================"
 echo
 
+# Starting several VMs at once starves them: VirtualBox logs multi-minute TM
+# catch-up lags and the guests miss their device-enumeration timeouts, landing
+# in the initrd emergency shell. VM_START_DELAY=0 disables the stagger.
+VM_START_DELAY="${VM_START_DELAY-45}"
+
+started=0
+
 for host in "${HOSTS[@]}"; do
+  if ((started > 0 && VM_START_DELAY > 0)); then
+    echo
+    echo "Waiting ${VM_START_DELAY}s before starting the next VM..."
+
+    sleep "${VM_START_DELAY}"
+  fi
+
   IP_ADDRESS="$(
     jq -r --arg host "${host}" \
       '.[$host].ipv4Address' \
@@ -543,6 +557,8 @@ for host in "${HOSTS[@]}"; do
   echo "Starting ${host}..."
 
   vbox startvm "${host}" --type headless
+
+  started=$((started + 1))
 
   echo "  Name: ${host}"
   echo "  IP:   ${IP_ADDRESS}"
