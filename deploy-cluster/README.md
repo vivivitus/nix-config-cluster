@@ -52,6 +52,13 @@ Running this command does the following:
 3. Starts all configured VM targets.
 4. Deploys NixOS to all VMs in parallel.
 
+**Stagger the VM starts:**
+
+    ./deploy.sh deploy vm --stagger
+    ./deploy.sh deploy vm --stagger=90
+
+All VMs start at once by default. On a slow host they can end up in the initrd emergency shell. `--stagger` starts each VM once the previous one accepts SSH, or after 45 seconds (or the given number) at the latest.
+
 **Remove the generated bootstrap key and deployment target file:**
 
     ./deploy.sh clean
@@ -82,7 +89,7 @@ The script will:
 
     ./deploy-vbox.sh vm
 
-This prepares the VirtualBox image once and starts all configured VirtualBox targets. The VMs are started in parallel.
+This prepares the VirtualBox image once and starts all configured VirtualBox targets. The VMs are started in parallel, or one after another with `--stagger[=SECONDS]`.
 
 ### deploy-nixos.sh
 

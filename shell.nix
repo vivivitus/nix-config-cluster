@@ -15,6 +15,7 @@ pkgs.mkShell {
     jq
     openssh
     git
+    qemu-utils
   ];
 
   shellHook = ''
@@ -29,6 +30,7 @@ pkgs.mkShell {
     echo "  jq        $(jq --version)"
     echo "  ssh       $(ssh -V 2>&1)"
     echo "  git       $(git --version)"
+    echo "  qemu-img  $(qemu-img --version | head -n1)"
     echo
   '';
 }
