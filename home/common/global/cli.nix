@@ -14,5 +14,6 @@
     age
     sops
     lm_sensors
+    tcpdump
   ];
 }

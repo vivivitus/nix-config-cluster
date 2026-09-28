@@ -65,7 +65,7 @@ in
 
     extraFlags = [
       "--write-kubeconfig-mode"
-      "644"
+      "600"
       "--flannel-backend=wireguard-native"
       "--flannel-conf"
       "${flannelCfg}"
@@ -89,8 +89,8 @@ in
 
           spec.valuesContent = ''
             additionalArguments:
-              - "--entryPoints.web.forwardedHeaders.insecure=true"
-              - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+              - "--entryPoints.web.forwardedHeaders.insecure=false"
+              - "--entryPoints.websecure.forwardedHeaders.insecure=false"
 
             resources:
               requests:

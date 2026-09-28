@@ -10,9 +10,6 @@
     ./cli.nix
   ];
 
-  # kube config, so kubectl can be used local
-  home.file.".kube/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/rancher/k3s/k3s.yaml";
-
   nixpkgs = {
     config = {
       allowUnfree = true;
@@ -32,6 +29,7 @@
   };
 
   programs = {
+    bash.enable = true;
     home-manager.enable = true;
   };
 
@@ -43,7 +41,7 @@
     stateVersion = lib.mkDefault "25.05";
     sessionPath = [ "$HOME/.local/bin" ];
     sessionVariables = {
-      FLAKE = "$HOME/nix-config-cluster";
+      KUBECONFIG = "${config.home.homeDirectory}/.kube/config";
     };
   };
 }

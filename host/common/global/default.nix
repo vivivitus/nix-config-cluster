@@ -21,8 +21,8 @@
   # inputs und outputs an home-manager weiterreichen
   home-manager.extraSpecialArgs = { inherit inputs outputs; };
 
-  # Keine Passwort-Eingabe für sudo
-  security.sudo.wheelNeedsPassword = false;
+  # Passwort für sudo benötigt
+  security.sudo.wheelNeedsPassword = true;
 
   # Damit VS-Code via SSH funktioniert
   programs.nix-ld.enable = true;

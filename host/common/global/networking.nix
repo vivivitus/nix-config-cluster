@@ -63,7 +63,7 @@
       ports = [ 22 ];
 
       settings = {
-        PasswordAuthentication = true;
+        PasswordAuthentication = false;
         UseDns = true;
       };
 
