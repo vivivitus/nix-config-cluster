@@ -43,82 +43,8 @@
 
       lib = nixpkgs.lib // home-manager.lib;
 
-      clusterConfigs = {
-        prod = {
-          gitRepository = "git@gitlab.com:kubernarnold/the-cluster.git";
-          argocdGitRepository = "https://gitlab.com/kubernarnold/the-cluster.git";
-          gitBranch = "main";
-          bootstrapRootApp = "root-app-prod.yaml";
-        };
-
-        staging = {
-          gitRepository = "git@gitlab.com:kubernarnold/the-cluster.git";
-          argocdGitRepository = "https://gitlab.com/kubernarnold/the-cluster.git";
-          gitBranch = "developing-config";
-          bootstrapRootApp = "root-app-staging.yaml";
-        };
-      };
-
-      hostConfigs = {
-        n1 = {
-          clusterTarget = "prod";
-          clusterBootstrap = true;
-          ipv4Address = "10.0.2.50";
-          ipv6Address = "2a02:168:5bab:2::50";
-          ipv4Gateway = "10.0.2.1";
-          ipv6Gateway = "2a02:168:5bab:2::1";
-          ipv4Nameserver = "10.0.2.1";
-          ipv6Nameserver = "2a02:168:5bab:2::1";
-        };
-
-        n2 = {
-          clusterTarget = "prod";
-          ipv4Address = "10.0.2.51";
-          ipv6Address = "2a02:168:5bab:2::51";
-          ipv4Gateway = "10.0.2.1";
-          ipv6Gateway = "2a02:168:5bab:2::1";
-          ipv4Nameserver = "10.0.2.1";
-          ipv6Nameserver = "2a02:168:5bab:2::1";
-        };
-
-        n3 = {
-          clusterTarget = "prod";
-          ipv4Address = "10.0.2.52";
-          ipv6Address = "2a02:168:5bab:2::52";
-          ipv4Gateway = "10.0.2.1";
-          ipv6Gateway = "2a02:168:5bab:2::1";
-          ipv4Nameserver = "10.0.2.1";
-          ipv6Nameserver = "2a02:168:5bab:2::1";
-        };
-
-        n1-vm = {
-          isVirtualMachine = true;
-          clusterTarget = "staging";
-          clusterBootstrap = true;
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
-          ipv4Address = "192.168.63.101";
-          ipv6Address = "fd42:42:42::101";
-        };
-
-        n2-vm = {
-          isVirtualMachine = true;
-          clusterTarget = "staging";
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
-          ipv4Address = "192.168.63.102";
-          ipv6Address = "fd42:42:42::102";
-        };
-
-        n3-vm = {
-          isVirtualMachine = true;
-          clusterTarget = "staging";
-          dhcpInterface = "enp0s3";
-          interface = "enp0s8";
-          ipv4Address = "192.168.63.103";
-          ipv6Address = "fd42:42:42::103";
-        };
-      };
+      inventory = import ./inventory.nix;
+      inherit (inventory) admins clusters hosts;
 
       networkDefaults = {
         interface = "enP4p65s0";
@@ -135,7 +61,8 @@
         clusterBootstrap = false;
       };
 
-      mkHostConfig = hostName: hostDefaults // hostConfigs.${hostName};
+      mkHostConfig = hostName: hostDefaults // hosts.${hostName};
+
       mkNetworkConfig = hostConfig: networkDefaults // hostConfig;
 
       diskoPatched = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
@@ -150,7 +77,7 @@
         hostName:
         let
           hostConfig = mkHostConfig hostName;
-          clusterConfig = clusterConfigs.${hostConfig.clusterTarget};
+          clusterConfig = clusters.${hostConfig.clusterTarget};
           networkConfig = mkNetworkConfig hostConfig;
         in
         {
@@ -181,7 +108,7 @@
             dhcpInterface
             ;
 
-          allHosts = hostConfigs;
+          allHosts = hosts;
         };
 
       deployTargets = lib.mapAttrs (
@@ -194,6 +121,8 @@
           inherit hostName;
 
           inherit (hostConfig)
+            system
+            isFallback
             isVirtualMachine
             clusterTarget
             clusterBootstrap
@@ -210,7 +139,7 @@
             dhcpInterface
             ;
         }
-      ) hostConfigs;
+      ) hosts;
     in
     {
       inherit lib;
@@ -230,51 +159,39 @@
       };
 
       nixosConfigurations = {
-        iso = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-            ./deploy-cluster/bootstrap-iso.nix
-          ];
-        };
-
-        vbox-vm = lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [ ./deploy-cluster/vbox-vm.nix ];
-        };
 
         n1 = lib.nixosSystem {
-          system = "aarch64-linux";
+          system = hosts.n1.system;
           specialArgs = mkHostArgs "n1";
           modules = [ ./host/n1 ];
         };
 
         n2 = lib.nixosSystem {
-          system = "aarch64-linux";
+          system = hosts.n2.system;
           specialArgs = mkHostArgs "n2";
           modules = [ ./host/n2 ];
         };
 
         n3 = lib.nixosSystem {
-          system = "aarch64-linux";
+          system = hosts.n3.system;
           specialArgs = mkHostArgs "n3";
           modules = [ ./host/n3 ];
         };
 
         n1-vm = lib.nixosSystem {
-          system = "x86_64-linux";
+          system = hosts.n1-vm.system;
           specialArgs = mkHostArgs "n1-vm";
           modules = [ ./host/n1 ];
         };
 
         n2-vm = lib.nixosSystem {
-          system = "x86_64-linux";
+          system = hosts.n2-vm.system;
           specialArgs = mkHostArgs "n2-vm";
           modules = [ ./host/n2 ];
         };
 
         n3-vm = lib.nixosSystem {
-          system = "x86_64-linux";
+          system = hosts.n3-vm.system;
           specialArgs = mkHostArgs "n3-vm";
           modules = [ ./host/n3 ];
         };
@@ -282,7 +199,7 @@
 
       homeConfigurations = {
         "vivian@n1" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n1.nix ];
+          modules = [ ./home/user/vivian/production.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -290,7 +207,7 @@
         };
 
         "vivian@n2" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n2.nix ];
+          modules = [ ./home/user/vivian/production.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -298,7 +215,7 @@
         };
 
         "vivian@n3" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n3.nix ];
+          modules = [ ./home/user/vivian/production.nix ];
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -306,7 +223,7 @@
         };
 
         "vivian@n1-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n1.nix ];
+          modules = [ ./home/user/vivian/development.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -314,7 +231,7 @@
         };
 
         "vivian@n2-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n2.nix ];
+          modules = [ ./home/user/vivian/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -322,14 +239,15 @@
         };
 
         "vivian@n3-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/n3.nix ];
+          modules = [ ./home/user/vivian/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
           };
         };
+
         "alex@n1-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/alex/n1.nix ];
+          modules = [ ./home/user/alex/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -337,7 +255,7 @@
         };
 
         "alex@n2-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/alex/n2.nix ];
+          modules = [ ./home/user/alex/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
@@ -345,7 +263,7 @@
         };
 
         "alex@n3-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/alex/n3.nix ];
+          modules = [ ./home/user/alex/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;

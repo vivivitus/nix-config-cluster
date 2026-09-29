@@ -1,4 +1,9 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  clusterTarget,
+  ...
+}:
 let
   ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
 in
@@ -22,5 +27,5 @@ in
     packages = [ pkgs.home-manager ];
   };
 
-  home-manager.users.alex = import ../../../../home/user/alex/${config.networking.hostName}.nix;
+  home-manager.users.alex = import ../../../../home/user/alex/${clusterTarget}.nix;
 }
