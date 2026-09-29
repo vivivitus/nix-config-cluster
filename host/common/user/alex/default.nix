@@ -1,6 +1,7 @@
 {
   pkgs,
   config,
+  admins,
   clusterTarget,
   ...
 }:
@@ -22,7 +23,7 @@ in
     ++ ifTheyExist [ ];
 
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFQP/PnJSvUL/5R+yBvNQla6Xw68ThyQ+gXYpYjhwOXD alex@kubernold.ch"
+      admins.alex.sshAuthorizedKey
     ];
     packages = [ pkgs.home-manager ];
   };

@@ -1,6 +1,7 @@
 {
   pkgs,
   config,
+  admins,
   clusterTarget,
   ...
 }:
@@ -22,10 +23,10 @@ in
     ++ ifTheyExist [ ];
 
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBPqON/KlzvnuEAi2DknZm1PL7ypcGAqC7q6Pwr8DJyI vivian@vividesk-2021-12-10"
+      admins.vivian.sshAuthorizedKey
     ];
     packages = [ pkgs.home-manager ];
   };
 
-  home-manager.users.alex = import ../../../../home/user/vivian/${clusterTarget}.nix;
+  home-manager.users.vivian = import ../../../../home/user/vivian/${clusterTarget}.nix;
 }

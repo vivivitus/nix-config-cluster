@@ -86,6 +86,7 @@
             outputs
             hostName
             clusterConfig
+            admins
             ;
 
           diskoModule = "${diskoPatched}/module.nix";
@@ -223,7 +224,7 @@
         };
 
         "vivian@n1-vm" = lib.homeManagerConfiguration {
-          modules = [ ./home/user/vivian/development.nix ];
+          modules = [ ./home/user/vivian/staging.nix ];
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = {
             inherit inputs outputs;
