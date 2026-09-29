@@ -314,32 +314,20 @@ build_image() {
   local host="$1"
 
   local build_dir="${SCRIPT_DIR}/build-${host}"
-  local key_host="${host%-vm}"
-  local host_extra_files_dir="${EXTRA_FILES_DIR}/${key_host}"
+  local host_extra_files_dir="${EXTRA_FILES_DIR}/${host}"
 
-  local ssh_key_priv="${host_extra_files_dir}/persist/etc/ssh/ssh_host_ed25519_key"
-  local ssh_key_pub="${host_extra_files_dir}/persist/etc/ssh/ssh_host_ed25519_key.pub"
+  local age_key="${host_extra_files_dir}/persist/var/lib/sops-nix/key.txt"
 
-  if [[ ! -f "${ssh_key_priv}" ]]; then
-    echo "ERROR: SSH private host key not found:"
-    echo "  ${ssh_key_priv}"
-    return 1
-  fi
-
-  if [[ ! -f "${ssh_key_pub}" ]]; then
-    echo "ERROR: SSH public host key not found:"
-    echo "  ${ssh_key_pub}"
+  if [[ ! -f "${age_key}" ]]; then
+    echo "ERROR: Age private key not found:"
+    echo "  ${age_key}"
     return 1
   fi
 
   local disko_args=(
     --post-format-files
-    "${ssh_key_priv}"
-    "/persist/etc/ssh/ssh_host_ed25519_key"
-
-    --post-format-files
-    "${ssh_key_pub}"
-    "/persist/etc/ssh/ssh_host_ed25519_key.pub"
+    "${age_key}"
+    "/persist/var/lib/sops-nix/key.txt"
   )
 
   nix build \
@@ -358,11 +346,11 @@ build_image() {
   (
     cd "${build_dir}"
 
-    enableParallelBuilding=1 \
+    #enableParallelBuilding=1 \
     NIX_BUILD_CORES="${build_cores}" \
     bash -x ./result \
       "${disko_args[@]}" \
-      --build-memory 2048
+      --build-memory 4096
   )
 
   local raw_image_path
