@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   hostName,
   ipv4Address,
@@ -69,7 +70,7 @@
 
       hostKeys = [
         {
-          path = "/etc/ssh/ssh_host_ed25519_key";
+          path = config.sops.secrets.ssh-host-private-key.path;
           type = "ed25519";
         }
       ];

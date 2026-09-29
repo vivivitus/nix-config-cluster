@@ -51,7 +51,7 @@ in
     ];
   };
 
-  sops.secrets.cluster-token = {
+  sops.secrets.cluster-join-token = {
     owner = config.users.users.root.name;
     group = config.users.users.root.name;
   };
@@ -61,7 +61,7 @@ in
     role = "server";
     package = pkgs.k3s_1_36;
 
-    token = config.sops.secrets.cluster-token.path;
+    token = config.sops.secrets.cluster-join-token.path;
 
     extraFlags = [
       "--write-kubeconfig-mode"

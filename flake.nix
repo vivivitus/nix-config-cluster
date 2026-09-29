@@ -62,7 +62,6 @@
       };
 
       mkHostConfig = hostName: hostDefaults // hosts.${hostName};
-
       mkNetworkConfig = hostConfig: networkDefaults // hostConfig;
 
       diskoPatched = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
@@ -112,6 +111,10 @@
           allHosts = hosts;
         };
 
+      sopsConfig = import ./generate-sops-config.nix {
+        inherit lib admins hosts;
+      };
+
       deployTargets = lib.mapAttrs (
         hostName: _:
         let
@@ -143,8 +146,7 @@
       ) hosts;
     in
     {
-      inherit lib;
-      inherit deployTargets;
+      inherit lib deployTargets sopsConfig;
 
       devShells = {
         x86_64-linux.default = import ./shell.nix {

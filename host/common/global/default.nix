@@ -3,6 +3,8 @@
   inputs,
   outputs,
   diskoModule,
+  clusterTarget,
+  hostName,
   ...
 }:
 
@@ -67,14 +69,43 @@
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
 
-  # sops-nix Konfiguration mit verweis auf /persist, da der key beim booten sonst nicht vorhanden ist
   sops = {
     age = {
-      sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
-      keyFile = "/var/lib/sops-nix/key.txt";
-      generateKey = true;
+      keyFile = "/persist/var/lib/sops-nix/key.txt";
     };
-    defaultSopsFile = ../../../secrets/secrets.yaml;
+  };
+
+  sops.secrets = {
+    password-alex = {
+      sopsFile = ../../../secrets/common/admins.yaml;
+      neededForUsers = true;
+    };
+
+    password-vivian = {
+      sopsFile = ../../../secrets/common/admins.yaml;
+      neededForUsers = true;
+    };
+
+    cluster-join-token = {
+      sopsFile = ../../../secrets/${clusterTarget}/cluster.yaml;
+    };
+
+    cluster-deploy-key = {
+      sopsFile = ../../../secrets/${clusterTarget}/cluster.yaml;
+    };
+
+    gitlab-vault-token = {
+      sopsFile = ../../../secrets/${clusterTarget}/cluster.yaml;
+    };
+
+    gitlab-argocd-token = {
+      sopsFile = ../../../secrets/${clusterTarget}/cluster.yaml;
+    };
+
+    ssh-host-private-key = {
+      sopsFile = ../../../secrets/${clusterTarget}/hosts/${hostName}.yaml;
+      mode = "0600";
+    };
   };
 
   programs.ssh.extraConfig = ''
