@@ -61,7 +61,7 @@ in
     role = "server";
     package = pkgs.k3s_1_36;
 
-    token = config.sops.secrets.cluster-join-token.path;
+    tokenFile = config.sops.secrets.cluster-join-token.path;
 
     extraFlags = [
       "--write-kubeconfig-mode"
