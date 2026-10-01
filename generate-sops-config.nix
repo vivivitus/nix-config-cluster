@@ -21,15 +21,21 @@ let
     clusterTarget: builtins.filter (host: host.value.clusterTarget == clusterTarget) hostEntries;
 
   clusterRecipients =
-    clusterTarget: adminRecipients ++ map (host: host.value.ageRecipient) (clusterHosts clusterTarget);
+    clusterTarget:
+    adminRecipients
+    ++ map (host: host.value.ageRecipient) (
+      builtins.filter (
+        host: host.value.clusterTarget == clusterTarget && (host.value.clusterBootstrap or false)
+      ) hostEntries
+    );
 
   recipientsYaml =
     recipients: builtins.concatStringsSep "\n" (map (recipient: "          - ${recipient}") recipients);
 
   rule = pathRegex: recipients: ''
-        - path_regex: ${pathRegex}
-          key_groups:
-            - age:
+      - path_regex: ${pathRegex}
+        key_groups:
+          - age:
     ${recipientsYaml recipients}
   '';
 

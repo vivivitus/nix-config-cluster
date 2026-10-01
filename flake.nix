@@ -111,6 +111,7 @@
           allHosts = hosts;
         };
 
+      # nix eval --raw '.#sopsConfig' >> .sops.yaml
       sopsConfig = import ./generate-sops-config.nix {
         inherit lib admins hosts;
       };

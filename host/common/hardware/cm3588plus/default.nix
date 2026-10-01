@@ -21,7 +21,7 @@
 
     # Auf einem Gerät (n2) führte der stromsparmodus zu problemen
     kernelParams = [ "nvme_core.default_ps_max_latency_us=0" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages;
     initrd.availableKernelModules = [ "nvme" ];
     initrd.kernelModules = [ ];
     kernelModules = [ ];
