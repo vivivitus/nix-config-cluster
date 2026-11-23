@@ -1,5 +1,10 @@
 { username }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   user = config.users.users.${username};
   kubeDirectory = "${user.home}/.kube";
